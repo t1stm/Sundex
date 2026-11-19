@@ -323,12 +323,16 @@ public partial class Panel(UIContext context) : UIElement(context), IColoredBack
     public override void ApplyStyleSheet(StyleSheet styleSheet)
     {
         base.ApplyStyleSheet(styleSheet);
-        foreach (var child in Children) child.ApplyStyleSheet(styleSheet);
+        foreach (var child in Children)
+            if (!child.StyleRoot)
+                child.ApplyStyleSheet(styleSheet);
     }
 
     public override void ResetStyles()
     {
         base.ResetStyles();
-        foreach (var child in Children) child.ResetStyles();
+        foreach (var child in Children)
+            if (!child.StyleRoot)
+                child.ResetStyles();
     }
 }

@@ -203,6 +203,14 @@ public abstract partial class UIElement
 
     protected internal StyleSheet? StoredStyleSheet { get; private set; }
 
+    /// <summary>
+    ///     Whether this element's tree is styled by its own sheet alone: a parent's
+    ///     <see cref="ApplyStyleSheet" /> and <see cref="ResetStyles" /> stop here instead of
+    ///     cascading into it. A version 2.0 markup document's root sets it, so a 1.0 document
+    ///     hosting one (through an element factory) doesn't restyle it with the host's sheet.
+    /// </summary>
+    public bool StyleRoot { get; set; }
+
     public UIState CurrentState
     {
         get;

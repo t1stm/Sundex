@@ -11,3 +11,4 @@ class counter {}
 class greeting {}
 class increment {}
 class branch {}
+class clipped {}

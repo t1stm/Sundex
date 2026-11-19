@@ -53,6 +53,10 @@ public abstract class MarkupComponent<TContext>(SundexContext<TContext> sundex) 
         Root = Scope.Run(Build);
         if (_mounted != null) Scope.Run(() => _mounted());
         _mounted = null;
+        // Styled by this document's sheets only, and ended with its root: a 1.0 document hosting
+        // this one through an element factory neither restyles it nor knows to dispose it.
+        Root.StyleRoot = true;
+        Root.Disposed += Scope.Dispose;
         return Root;
     }
 

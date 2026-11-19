@@ -11,6 +11,12 @@ public abstract partial class UIElement : IDisposable
 {
     public bool IsDisposed { get; private set; }
 
+    /// <summary>
+    ///     Raised once, after the element is disposed: what something attached to it ends with
+    ///     (a markup document's bindings end with its root).
+    /// </summary>
+    public event Action? Disposed;
+
     /// <summary>Takes the element out of its parent and frees what it holds. Safe to call twice.</summary>
     public void Dispose()
     {
@@ -21,6 +27,8 @@ public abstract partial class UIElement : IDisposable
         Context.UnregisterUpdate(this);
         Context.UnwatchMedia(this);
         OnDispose();
+        Disposed?.Invoke();
+        Disposed = null;
         GC.SuppressFinalize(this);
     }
 

@@ -1,14 +1,16 @@
 using OpenTK.Mathematics;
 using Sundex.Components.Abstractions;
+using Sundex.Components.Attributes;
 
 namespace Sundex.Components.Labels;
 
 /// <summary>
 ///     A label cut off at its parent's edges. A Sundex label neither wraps nor ellipsizes, so a
 ///     long name would otherwise paint over whatever sits beside its box. Give it a parent sized
-///     to the room it may take (a percent-width panel, say).
+///     to the room it may take (a percent-width panel, say). In markup: <c>&lt;clipped-label value="…"/&gt;</c>.
 /// </summary>
-public class ClippedLabel(UIContext context, string text, string? font = null) : Label(context, text, font)
+[MarkupTag("clipped-label")]
+public class ClippedLabel(UIContext context, string text = "", string? font = null) : Label(context, text, font)
 {
     public override void ApplyClip(Vector4i? clip)
     {

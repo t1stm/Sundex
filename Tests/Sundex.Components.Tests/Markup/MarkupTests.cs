@@ -50,6 +50,7 @@ public class MarkupTests
         Assert.Equal("Count: 0", Text(count));
         Assert.Equal(20, count.FontSizePx.Value);
         Assert.Equal("hello", Text(Assert.Single(Labels(root, "greeting"))));
+        Assert.IsType<ClippedLabel>(Assert.Single(Labels(root, "clipped")));
     }
 
     [Fact]
