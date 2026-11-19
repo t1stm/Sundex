@@ -18,4 +18,5 @@ major=${last%%.*}
 rest=${last#*.}
 minor=${rest%%.*}
 patch=${rest#*.}
-printf '%s.%s.%s-%s-%s\n' "$major" "$minor" "$((patch + 1))" "$(date -u +%Y%m%d%H%M)" "$(git rev-parse --short=7 HEAD)"
+# nuget.org rejects a single prerelease label that starts with a digit.
+printf '%s.%s.%s-n%s-%s\n' "$major" "$minor" "$((patch + 1))" "$(date -u +%Y%m%d%H%M)" "$(git rev-parse --short=7 HEAD)"
