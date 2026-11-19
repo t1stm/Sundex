@@ -50,6 +50,13 @@ public class Checkbox : StackPanel
 
     public Label Label { get; }
 
+    /// <summary>The label's text, for markup: <c>&lt;checkbox value="…"/&gt;</c>, as on a label.</summary>
+    public string Value
+    {
+        get => Label.Value.ToString();
+        set => Label.Value = value;
+    }
+
     public Action<Checkbox>? OnCheckedChanged { get; set; }
 
     public bool Checked

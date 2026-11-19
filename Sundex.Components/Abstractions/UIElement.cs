@@ -755,6 +755,9 @@ public abstract partial class UIElement
     /// </summary>
     private Dictionary<string, (PropertyInfo Property, object? Before, object? Styled)>? _styled;
 
+    /// <summary>Whether a sheet set the property (by its C# name) on this element.</summary>
+    internal bool IsStyled(string property) => _styled?.ContainsKey(property) == true;
+
     private void ApplyOwnStyle(StyleSheet styleSheet, bool restyle = false)
     {
         // A state override still on top would be read as the base below and snapshotted as it:

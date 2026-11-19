@@ -1,4 +1,5 @@
 using Sundex.Components.Abstractions;
+using Sundex.Components.Inputs;
 using Sundex.Components.Labels;
 using Sundex.Components.Panels;
 using Sundex.Markup;
@@ -51,6 +52,18 @@ public class MarkupTests
         Assert.Equal(20, count.FontSizePx.Value);
         Assert.Equal("hello", Text(Assert.Single(Labels(root, "greeting"))));
         Assert.IsType<ClippedLabel>(Assert.Single(Labels(root, "clipped")));
+        Assert.Equal("Agree", All(root).OfType<Checkbox>().Single().Value);
+    }
+
+    [Fact]
+    public void AButtonTakesTheLabelInsideItAsItsLabel_WithTheButtonsFontSize()
+    {
+        var (sundex, _) = Context();
+        var button = All(new Counter(sundex).Create()).OfType<Button>().Single();
+
+        Assert.Same(button.Children.Single(), button.Label);
+        Assert.Equal("Add one", Text(button.Label));
+        Assert.Equal(18, button.Label.FontSizePx.Value);
     }
 
     [Fact]

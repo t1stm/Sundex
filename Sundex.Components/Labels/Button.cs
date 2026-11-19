@@ -16,7 +16,8 @@ public class Button : FlexPanel
 
     /// <summary>
     ///     A button with no label of its own, for markup: its children are whatever the markup puts
-    ///     in it. <see cref="Label" /> is a detached placeholder until something sets it.
+    ///     in it. <see cref="Label" /> is a detached placeholder until the first label the markup puts
+    ///     in it, which takes its place (see <see cref="AddChild" />).
     /// </summary>
     public Button(UIContext context) : base(context)
     {
@@ -25,6 +26,7 @@ public class Button : FlexPanel
         HorizontalAlign = Align.Center;
         VerticalAlign = Align.Center;
         Label = new Label(context);
+        _adoptsLabel = true;
         UpdateCursorOnHover = true;
         Focusable = true;
     }
@@ -44,6 +46,26 @@ public class Button : FlexPanel
 
 
     public override string Tag => "button";
+
+    private bool _adoptsLabel;
+
+    /// <summary>
+    ///     The first label added to a button built for markup becomes its <see cref="Label" />, as
+    ///     if the button had been built around it: <see cref="Value" /> and <see cref="FontSizePx" />
+    ///     reach it. Markup styles the button before its label exists, so a font size the button's
+    ///     rules set moves over to the label, unless the label's own rules set one.
+    /// </summary>
+    public override void AddChild(UIElement child)
+    {
+        if (_adoptsLabel && child is Label label)
+        {
+            _adoptsLabel = false;
+            if (IsStyled(nameof(FontSizePx)) && !label.IsStyled(nameof(Label.FontSizePx))) label.FontSizePx = FontSizePx;
+            Label = label;
+        }
+
+        base.AddChild(child);
+    }
 
     /// <summary>Enter and Space press a focused button, as in a browser.</summary>
     public override bool HandleKeyDown(OpenTK.Windowing.Common.KeyboardKeyEventArgs args)

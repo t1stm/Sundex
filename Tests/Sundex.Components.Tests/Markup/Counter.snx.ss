@@ -9,6 +9,9 @@ class odd {
 // Classes the tests find elements by.
 class counter {}
 class greeting {}
-class increment {}
+class increment {
+  font-size = 18;
+}
 class branch {}
 class clipped {}
+class agree {}

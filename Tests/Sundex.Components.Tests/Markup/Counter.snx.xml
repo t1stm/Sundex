@@ -8,6 +8,7 @@
       <label ref="shown" class="count" class.odd="{count.Value % 2 == 1}" value="Count: {count.Value}"/>
       <label class="greeting" value="{Context.Greeting.Value}"/>
       <clipped-label class="clipped" value="clipped"/>
+      <checkbox class="agree" value="Agree"/>
       <button class="increment" on.click="{Increment}">
         <label value="Add one"/>
       </button>
