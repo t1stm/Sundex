@@ -12,4 +12,15 @@
     </AssemblyAttribute>
     <RuntimeHostConfigurationOption Include="Sundex.Development" Value="true"/>
   </ItemGroup>
+  <!-- OpenTK 5 pre.16 probes libglfw.so.3, but its 3.5 redist ships only libglfw.so.3.5. -->
+  <Target Name="SundexAddGlfwSoname" AfterTargets="ResolvePackageAssets"
+          Condition="'$(OutputType)' == 'Exe' Or '$(OutputType)' == 'WinExe'">
+    <ItemGroup>
+      <_SundexGlfw Include="@(NativeCopyLocalItems);@(RuntimeTargetsCopyLocalItems)"
+                   Condition="'%(Filename)%(Extension)' == 'libglfw.so.3.5'"/>
+      <ContentWithTargetPath Include="@(_SundexGlfw)"
+                             TargetPath="%(_SundexGlfw.DestinationSubDirectory)libglfw.so.3"
+                             CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/>
+    </ItemGroup>
+  </Target>
 </Project>
