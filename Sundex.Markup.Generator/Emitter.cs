@@ -496,7 +496,7 @@ internal sealed class Emitter
         if (node.Attribute("class") is not { } attribute) return;
         var names = StyleIndex.NamesFor(component.StyleSource, _sheets);
         if (names == null) return;
-        foreach (var name in attribute.Value.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries))
+        foreach (var name in attribute.Value.Split([' ', ','], StringSplitOptions.RemoveEmptyEntries))
             if (!names.Contains(name))
                 Report(Diagnostics.UnknownUseClass, attribute.Spot, name, component.StyleSource ?? "", component.Tag);
     }
@@ -508,7 +508,7 @@ internal sealed class Emitter
         foreach (var attribute in node.Attributes)
         {
             IEnumerable<string> names = attribute.Name == "class"
-                ? attribute.Value.Trim('[', ']').Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries)
+                ? attribute.Value.Trim('[', ']').Split([' ', ','], StringSplitOptions.RemoveEmptyEntries)
                 : attribute.Name.StartsWith("class.", StringComparison.Ordinal)
                     ? new[] { attribute.Name.Substring("class.".Length) }
                     : Array.Empty<string>();
@@ -617,8 +617,7 @@ internal sealed class Emitter
     {
         foreach (var type in namespaceSymbol.GetTypeMembers())
         foreach (var attribute in type.GetAttributes())
-            if (attribute.AttributeClass?.Name == "MarkupTagAttribute" &&
-                attribute.ConstructorArguments.Length == 1 &&
+            if (attribute is { AttributeClass.Name: "MarkupTagAttribute", ConstructorArguments.Length: 1 } &&
                 attribute.ConstructorArguments[0].Value is string tag)
                 tags[tag] = type;
 
@@ -690,7 +689,7 @@ internal sealed class Emitter
                 return double.TryParse(raw, NumberStyles.Float, invariant, out _) ? raw + "d" : null;
         }
 
-        if (type is INamedTypeSymbol { Name: "ReadOnlySpan" } span && span.TypeArguments.Length == 1 &&
+        if (type is INamedTypeSymbol { Name: "ReadOnlySpan", TypeArguments.Length: 1 } span &&
             span.TypeArguments[0].SpecialType == SpecialType.System_Char)
             return Quote(raw);
 

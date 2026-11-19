@@ -42,15 +42,15 @@ public class ReorderList : FlexPanel
     public List<UIElement> Rows()
     {
         var rows = new List<UIElement>();
-        Collect(Children, rows);
+        CollectRows(Children, rows);
         return rows;
 
-        static void Collect(List<UIElement> children, List<UIElement> rows)
+        static void CollectRows(List<UIElement> children, List<UIElement> rows)
         {
             foreach (var child in children)
             {
                 if (!child.Visible) continue;
-                if (child is Region region) Collect(region.Children, rows);
+                if (child is Region region) CollectRows(region.Children, rows);
                 else if (child.Position == Placement.Flow) rows.Add(child);
             }
         }

@@ -349,7 +349,7 @@ public class Label : UIElement
     }
 
     private float Advance(ReadOnlySpan<char> glyph) =>
-        (float)TextBuffer!.TextProvider.GetGlyph(glyph).Advance * Size + LetterSpacing * Size;
+        TextBuffer!.TextProvider.GetGlyph(glyph).Advance * Size + LetterSpacing * Size;
 
     private float WidthOf(ReadOnlySpan<char> text)
     {

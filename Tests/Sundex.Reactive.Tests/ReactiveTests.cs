@@ -1,4 +1,3 @@
-using Sundex.Reactive;
 using static Sundex.Reactive.Rx;
 
 [assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.None)]
@@ -310,7 +309,7 @@ public class ReactiveTests
     {
         using var scope = Scope.Root();
         var result = scope.Run(() =>
-            Load<int>(_ => Task.FromException<int>(new InvalidOperationException("no")), 0));
+            Load(_ => Task.FromException<int>(new InvalidOperationException("no")), 0));
         await Task.Delay(10, TestContext.Current.CancellationToken);
 
         Assert.IsType<InvalidOperationException>(result.Error.Peek);

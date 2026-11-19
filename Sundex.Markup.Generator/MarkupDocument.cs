@@ -112,7 +112,7 @@ internal sealed class MarkupDocument
             reader.Read();
             while (!reader.EOF)
             {
-                if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "sundex") break;
+                if (reader is { NodeType: XmlNodeType.EndElement, Name: "sundex" }) break;
                 if (reader.NodeType != XmlNodeType.Element)
                 {
                     reader.Read();
@@ -188,7 +188,7 @@ internal sealed class MarkupDocument
         var builder = new StringBuilder();
         var first = true;
         reader.Read();
-        while (!(reader.NodeType == XmlNodeType.EndElement && reader.Name == "logic"))
+        while (reader is not { NodeType: XmlNodeType.EndElement, Name: "logic" })
         {
             if (reader.NodeType is XmlNodeType.CDATA or XmlNodeType.Text or XmlNodeType.Whitespace or XmlNodeType.SignificantWhitespace)
             {
@@ -219,7 +219,7 @@ internal sealed class MarkupDocument
         }
 
         reader.Read();
-        while (!(reader.NodeType == XmlNodeType.EndElement && reader.Name == "props"))
+        while (reader is not { NodeType: XmlNodeType.EndElement, Name: "props" })
         {
             if (reader.NodeType == XmlNodeType.Element)
             {
@@ -257,7 +257,7 @@ internal sealed class MarkupDocument
         }
 
         reader.Read();
-        while (!(reader.NodeType == XmlNodeType.EndElement && reader.Name == "layout"))
+        while (reader is not { NodeType: XmlNodeType.EndElement, Name: "layout" })
         {
             if (reader.NodeType == XmlNodeType.Element)
             {
@@ -293,7 +293,7 @@ internal sealed class MarkupDocument
         reader.Read();
         if (empty) return node;
 
-        while (!(reader.NodeType == XmlNodeType.EndElement))
+        while (reader.NodeType != XmlNodeType.EndElement)
         {
             if (reader.NodeType == XmlNodeType.Element)
             {

@@ -4,7 +4,7 @@ using Sundex.Components.Attributes;
 using Sundex.Components.Labels;
 using Sundex.Components.Panels;
 using Sundex.Components.Scroll;
-using Sundex.Engine.Asset_Management.Types.Asset;
+using Sundex.Engine.AssetManagement.Types.Asset;
 
 namespace Sundex.Components.Markdown;
 
@@ -18,7 +18,7 @@ namespace Sundex.Components.Markdown;
 ///         the OS shell, where a path can launch a program.
 ///     </para>
 /// </summary>
-[Sundex.Components.Attributes.MarkupTag("markdown")]
+[MarkupTag("markdown")]
 public class MarkdownView(UIContext context) : ScrollView(context)
 {
     /// <summary>The body text's font. Headings, bold and the rest of the interface are in Lato Bold.</summary>

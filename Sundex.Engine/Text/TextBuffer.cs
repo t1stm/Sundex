@@ -3,7 +3,7 @@ using OpenTK.Mathematics;
 using Sundex.Engine.Renderer;
 using Sundex.Engine.Renderer.Abstract;
 using Sundex.Engine.Renderer.Cameras;
-using Sundex.Engine.Renderer.Data_Buffers;
+using Sundex.Engine.Renderer.Buffers;
 using Sundex.Engine.Renderer.Queues;
 
 namespace Sundex.Engine.Text;

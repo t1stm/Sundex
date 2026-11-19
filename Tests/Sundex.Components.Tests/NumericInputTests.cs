@@ -214,7 +214,7 @@ public class NumericInputTests
         input.Unit = "%";
         root.Layout();
 
-        var unit = input.Children.OfType<Labels.Label>().Single(label => label.Value.SequenceEqual("%"));
+        var unit = input.Children.OfType<Labels.Label>().Single(label => label.Value is "%");
         var minus = input.DecrementButton.Computed;
         var plus = input.IncrementButton.Computed;
         Assert.Equal(minus.AbsoluteX - 4, unit.Computed.AbsoluteX + unit.Computed.Width, 2);

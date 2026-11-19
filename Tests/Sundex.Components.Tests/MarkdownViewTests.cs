@@ -3,7 +3,7 @@ using Sundex.Components.Abstractions;
 using Sundex.Components.Labels;
 using Sundex.Components.Markdown;
 using Sundex.Components.Panels;
-using Sundex.Engine.Asset_Management.Types.Asset;
+using Sundex.Engine.AssetManagement.Types.Asset;
 using Sundex.Style.DSL;
 
 namespace Sundex.Components.Tests;

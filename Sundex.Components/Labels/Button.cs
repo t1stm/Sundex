@@ -5,7 +5,7 @@ using Sundex.Components.Panels;
 
 namespace Sundex.Components.Labels;
 
-[Sundex.Components.Attributes.MarkupTag("button")]
+[MarkupTag("button")]
 public class Button : FlexPanel
 {
     /// <param name="font">The label's font; null for the interface font. See <see cref="Label" />.</param>

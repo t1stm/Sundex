@@ -1,5 +1,4 @@
 using OpenTK.Mathematics;
-using Sundex.Components;
 using Sundex.Components.Abstractions;
 using Sundex.Components.Abstractions.Values;
 using Sundex.Components.Panels;
@@ -222,30 +221,16 @@ public class LayoutPaddingTests
         Assert.Equal(150, child.Computed.AbsoluteX);
     }
 
-    private class TestContext : UIContext
-    {
-        public readonly List<IRenderable> QueuedRenderables = [];
-
-        public TestContext()
-        {
-            Camera = new UICamera(Vector3.Zero, new Vector2i(1920, 1080));
-        }
-
-        public new void QueueRender(IRenderable renderable, int renderIndex, int queueIndex = -1)
-        {
-            QueuedRenderables.Add(renderable);
-            base.QueueRender(renderable, renderIndex, queueIndex);
-        }
-    }
+    private class TestContext : UIContext;
 
     private class TestPanel(UIContext context) : Panel(context)
     {
-        public readonly IRenderable TestRenderable = new MockRenderable();
+        private readonly IRenderable _testRenderable = new MockRenderable();
 
         protected override void DrawSelf(UIContext context)
         {
             base.DrawSelf(context);
-            context.QueueRender(TestRenderable, Index);
+            context.QueueRender(_testRenderable, Index);
         }
     }
 

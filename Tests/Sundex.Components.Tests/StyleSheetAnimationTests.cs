@@ -132,12 +132,8 @@ public class StyleSheetAnimationTests
         Assert.Equal(40, animation.TimingStopwatch.ElapsedMilliseconds);
     }
 
-    private class TestElement : UIElement
+    private class TestElement(UIContext context) : UIElement(context)
     {
-        public TestElement(UIContext context) : base(context)
-        {
-        }
-
         public override string Tag => "test-element";
 
         protected override void DrawSelf(UIContext context)

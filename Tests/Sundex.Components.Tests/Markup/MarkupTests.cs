@@ -140,7 +140,7 @@ public class MarkupTests
         var (sundex, _) = Context();
         var counter = new Counter(sundex);
         counter.Create();
-        Assert.Throws<InvalidOperationException>(() => counter.Create());
+        Assert.Throws<InvalidOperationException>(counter.Create);
     }
 
     [Fact]
@@ -153,10 +153,10 @@ public class MarkupTests
 
         Assert.Single(Labels(cards[0], "body"));
         Assert.Equal(["Save", "Cancel"], Labels(cards[0], "action").Select(Text));
-        var actions = Assert.Single(All(cards[0]).Where(element => element.Classes.Contains("actions")));
+        var actions = Assert.Single(All(cards[0]), element => element.Classes.Contains("actions"));
         Assert.All(Labels(cards[0], "action"), label => Assert.Contains(label, All(actions)));
 
-        Assert.Empty(All(cards[1]).Where(element => element.Classes.Contains("actions")));
+        Assert.DoesNotContain(All(cards[1]), element => element.Classes.Contains("actions"));
     }
 
     [Fact]

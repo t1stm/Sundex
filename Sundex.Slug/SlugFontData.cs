@@ -270,7 +270,7 @@ public sealed class SlugFontData
             point2 = point3 - ThirdDerivative(edge, end) * (end - start);
         }
 
-        /// <summary>A cubic's exact first derivative over three (unlike <see cref="EdgeSegment.Direction" />, no fallbacks).</summary>
+        /// <summary>A cubic's exact first derivative over three with no fallback for a zero derivative.</summary>
         private static Vector2d ThirdDerivative(in EdgeSegment edge, double progress)
         {
             var inverse = 1 - progress;
@@ -345,8 +345,8 @@ public sealed class SlugFontData
             {
                 if (vertical ? curve.IsVerticalLine : curve.IsHorizontalLine) continue;
 
-                _lo[curveCount] = (double)(vertical ? curve.MinX : curve.MinY) - BandEpsilon - min;
-                _hi[curveCount] = (double)(vertical ? curve.MaxX : curve.MaxY) + BandEpsilon - min;
+                _lo[curveCount] = (vertical ? curve.MinX : curve.MinY) - BandEpsilon - min;
+                _hi[curveCount] = (vertical ? curve.MaxX : curve.MaxY) + BandEpsilon - min;
                 curveCount++;
             }
 

@@ -8,7 +8,7 @@ namespace Sundex.Engine;
 ///     so the IDE's hot-reload button has nothing to apply and never reaches
 ///     <see cref="HotReload.UpdateApplication" /> for it.
 ///     <para>
-///         Only ever constructed against <see cref="Asset_Management.AssetProvider.SourceRoots" />,
+///         Only ever constructed against <see cref="AssetManagement.AssetProvider.SourceRoots" />,
 ///         which is empty outside Debug - so in Release this watches nothing and starts no
 ///         threads.
 ///     </para>

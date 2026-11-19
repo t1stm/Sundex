@@ -54,7 +54,7 @@ public class MultilineInputTests
     {
         var (context, input) = Focused("x");
         var taken = 0;
-        input.OnKey = args => args.Control && args.Key == Keys.Enter && ++taken > 0;
+        input.OnKey = args => args is { Control: true, Key: Keys.Enter } && ++taken > 0;
         Key(context, Keys.Enter, KeyModifiers.Control);
         Assert.Equal(1, taken);
         Assert.Equal("x", input.Value);

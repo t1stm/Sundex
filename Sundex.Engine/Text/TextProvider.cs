@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 using OpenTK.Graphics.OpenGL;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using Sundex.Engine.Asset_Management;
+using Sundex.Engine.AssetManagement;
 using Sundex.Engine.Renderer.Abstract;
 using Sundex.Engine.Renderer.Attributes;
 using Sundex.Engine.Renderer.Cameras;
@@ -83,7 +83,7 @@ public class TextProvider(IAssetProvider provider, IFontProvider fontProvider, s
         var configuration = Configuration.Default.Clone();
         configuration.PreferContiguousImageBuffers = true;
 
-        var image = Image.LoadPixelData<RgbaVector>(configuration, MemoryMarshal.Cast<float, RgbaVector>(texels),
+        var image = Image.LoadPixelData(configuration, MemoryMarshal.Cast<float, RgbaVector>(texels),
             SlugFontData.TextureWidth, rows);
         texture.QueueUploadToGPU(image.Frames.RootFrame);
         return texture;

@@ -5,7 +5,7 @@ game with planes, text and a scene loop. The Core package brings Engine, Slug an
 
 `Sundex.Style.DSL`, `Sundex.Components` and `Sundex.Markup` add styling, UI controls and
 compiled markup. Reference `Sundex.Markup.Legacy` and call
-`Sundex.Markup.Logic.Languages.CSharp.CSharp.Register()` at startup to run C# logic in
+`Sundex.Markup.Legacy.CSharp.Register()` at startup to run C# logic in
 Sundex 1.0 markup. `Sundex.Testing` provides a headless UI context and mock font providers.
 
 Build and test with `dotnet build` and `dotnet test`. After packing into `artifacts/`, run

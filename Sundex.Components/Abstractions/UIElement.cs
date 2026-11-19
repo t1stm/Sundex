@@ -766,7 +766,7 @@ public abstract partial class UIElement
         {
             // A byref-like setting (Label's ReadOnlySpan<char> value) cannot be read back through
             // reflection at all, so it is applied without being recorded.
-            var trackable = propertyInfo is { CanRead: true, CanWrite: true } && !propertyInfo.PropertyType.IsByRefLike;
+            var trackable = propertyInfo is { CanRead: true, CanWrite: true, PropertyType.IsByRefLike: false };
             var known = false;
             (PropertyInfo Property, object? Before, object? Styled) record = default;
             if (trackable) known = _styled.TryGetValue(propertyInfo.Name, out record);

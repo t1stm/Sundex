@@ -2,8 +2,8 @@ using System.Text.Json;
 using OpenTK.Graphics.OpenGL;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using Sundex.Engine.Asset_Management;
-using Sundex.Engine.Asset_Management.Types.Cache;
+using Sundex.Engine.AssetManagement;
+using Sundex.Engine.AssetManagement.Types.Cache;
 using Sundex.Engine.Common;
 
 namespace Sundex.Engine.Renderer.Textures.Atlases;

@@ -99,13 +99,13 @@ internal struct EdgeSegment
                 if (bot.X != 0)
                 {
                     var param = (Point1.X - Point0.X) / bot.X;
-                    if (param > 0 && param < 1) PointBounds(Point(param), ref left, ref bottom, ref right, ref top);
+                    if (param is > 0 and < 1) PointBounds(Point(param), ref left, ref bottom, ref right, ref top);
                 }
 
                 if (bot.Y != 0)
                 {
                     var param = (Point1.Y - Point0.Y) / bot.Y;
-                    if (param > 0 && param < 1) PointBounds(Point(param), ref left, ref bottom, ref right, ref top);
+                    if (param is > 0 and < 1) PointBounds(Point(param), ref left, ref bottom, ref right, ref top);
                 }
 
                 return;

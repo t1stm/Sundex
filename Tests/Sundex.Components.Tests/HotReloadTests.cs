@@ -1,11 +1,11 @@
 using System.Reflection;
 using Serilog;
 using Sundex.Engine;
-using Sundex.Engine.Asset_Management;
-using Sundex.Engine.Asset_Management.Types.Asset;
-using Sundex.Engine.Asset_Management.Types.String;
-using Sundex.Engine.Asset_Management.Extensions;
-using StringInfo = Sundex.Engine.Asset_Management.Types.String.StringInfo;
+using Sundex.Engine.AssetManagement;
+using Sundex.Engine.AssetManagement.Types.Asset;
+using Sundex.Engine.AssetManagement.Types.String;
+using Sundex.Engine.AssetManagement.Extensions;
+using StringInfo = Sundex.Engine.AssetManagement.Types.String.StringInfo;
 
 namespace Sundex.Components.Tests;
 

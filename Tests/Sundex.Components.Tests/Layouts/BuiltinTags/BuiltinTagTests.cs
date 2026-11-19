@@ -6,8 +6,8 @@ using Sundex.Components.Inputs;
 using Sundex.Components.Labels;
 using Sundex.Components.Panels;
 using Sundex.Components.Scroll;
-using Sundex.Engine.Asset_Management.Extensions;
-using Sundex.Engine.Asset_Management.Types.Asset;
+using Sundex.Engine.AssetManagement.Extensions;
+using Sundex.Engine.AssetManagement.Types.Asset;
 using Sundex.Markup;
 
 namespace Sundex.Components.Tests.Layouts.BuiltinTags;

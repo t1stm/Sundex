@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
-using Sundex.Engine.Asset_Management;
-using Sundex.Markup.Logic.Languages.CSharp;
+using Sundex.Engine.AssetManagement;
+using Sundex.Markup.Legacy;
 
 [assembly: SundexAssets]
 

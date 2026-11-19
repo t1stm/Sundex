@@ -1,8 +1,9 @@
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
-using Sundex.Core.Renderer.Planes;
 using Sundex.Components.Abstractions;
 using Sundex.Components.Abstractions.Values;
+using Sundex.Components.Attributes;
+using Sundex.Core.Renderer.Planes;
 
 namespace Sundex.Components.Panels;
 
@@ -14,7 +15,7 @@ namespace Sundex.Components.Panels;
 ///     (RemoveChild fully un-renders the subtree via the StopRendering cascade).
 ///     <see cref="UIElement.OnClick" /> is used internally - don't overwrite it.
 /// </summary>
-[Sundex.Components.Attributes.MarkupTag("modal")]
+[MarkupTag("modal")]
 public class ModalLayer : FlexPanel
 {
     /// <summary>Hit-test/render index pinned above everything a scene normally produces.</summary>

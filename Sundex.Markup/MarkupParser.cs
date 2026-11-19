@@ -4,7 +4,7 @@ using Sundex.Markup.Document.Root;
 
 namespace Sundex.Markup;
 
-public class MarkupParser
+public static class MarkupParser
 {
     public static SundexDocument Parse(string markup)
     {

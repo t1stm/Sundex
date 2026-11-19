@@ -2,16 +2,14 @@ using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
-
-using Sundex.Core;
-using Sundex.Engine.Asset_Management;
-using Sundex.Engine.Asset_Management.Extensions;
-using Sundex.Engine.Asset_Management.Types.Shader;
+using Sundex.Engine.AssetManagement;
+using Sundex.Engine.AssetManagement.Extensions;
+using Sundex.Engine.AssetManagement.Types.Shader;
 using Sundex.Engine.Renderer;
 using Sundex.Engine.Renderer.Abstract;
 using Sundex.Engine.Renderer.Attributes;
+using Sundex.Engine.Renderer.Buffers;
 using Sundex.Engine.Renderer.Cameras;
-using Sundex.Engine.Renderer.Data_Buffers;
 using Sundex.Engine.Renderer.Queues;
 using Sundex.Engine.Renderer.Shaders;
 
@@ -100,7 +98,7 @@ public sealed class BoxPlane : Renderable, IGamePreloadable, IBorderRadius
 
         Span<Uniform> data =
         [
-            new Uniform
+            new()
             {
                 Model = Model,
                 Projection = camera.GetVPMatrix(),

@@ -100,21 +100,21 @@ public class WindowFrame : Panel
         var right = x + Computed.Width;
         var bottom = y + Computed.Height;
 
-        var x_negative = mouseX > x - resizeMargin && mouseX <= x + resizeMargin;
-        var x_positive = mouseX >= right - resizeMargin && mouseX < right + resizeMargin;
+        var xNegative = mouseX > x - resizeMargin && mouseX <= x + resizeMargin;
+        var xPositive = mouseX >= right - resizeMargin && mouseX < right + resizeMargin;
 
-        var y_negative = mouseY > y && mouseY <= y + resizeMargin;
-        var y_positive = mouseY >= bottom - resizeMargin && mouseY < bottom + resizeMargin;
+        var yNegative = mouseY > y && mouseY <= y + resizeMargin;
+        var yPositive = mouseY >= bottom - resizeMargin && mouseY < bottom + resizeMargin;
 
-        var resizesX = x_positive || x_negative;
-        var resizesY = y_positive || y_negative;
+        var resizesX = xPositive || xNegative;
+        var resizesY = yPositive || yNegative;
 
         if (!resizesX && !resizesY)
             return;
 
         if (!mouse.IsButtonDown(MouseButton.Left)) return;
-        _resizingXMode = (byte)(x_positive ? 1 : x_negative ? 2 : 0);
-        _resizingYMode = (byte)(y_positive ? 1 : y_negative ? 2 : 0);
+        _resizingXMode = (byte)(xPositive ? 1 : xNegative ? 2 : 0);
+        _resizingYMode = (byte)(yPositive ? 1 : yNegative ? 2 : 0);
     }
 
     protected void SetChild(UIElement child)

@@ -5,9 +5,9 @@ using OpenTK.Windowing.Desktop;
 using Serilog;
 using Sundex.Core.Renderer.Planes;
 using Sundex.Engine;
-using Sundex.Engine.Asset_Management;
-using Sundex.Engine.Asset_Management.Extensions;
-using Sundex.Engine.Asset_Management.Types.Asset;
+using Sundex.Engine.AssetManagement;
+using Sundex.Engine.AssetManagement.Extensions;
+using Sundex.Engine.AssetManagement.Types.Asset;
 using Sundex.Engine.Renderer.Cameras;
 
 [assembly: SundexAssets]

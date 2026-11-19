@@ -64,11 +64,11 @@ public sealed class DropDownLabel : Panel
 
     public override void Test(MouseState mouse, Vector2 scale)
     {
-        var hide_panel = mouse.IsButtonPressed(MouseButton.Left);
+        var hidePanel = mouse.IsButtonPressed(MouseButton.Left);
         Label.Test(mouse, scale);
         Panel.Test(mouse, scale);
 
-        if (hide_panel && !Label.IsHovered)
+        if (hidePanel && !Label.IsHovered)
             Panel.Visible = false;
     }
 

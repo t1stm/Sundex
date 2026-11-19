@@ -76,17 +76,17 @@ public abstract class Camera
 
         if (Math.Abs(Scale - 1) > 0.001f)
         {
-            var add_left = Width - Width / Scale;
-            var add_top = Height - Height / Scale;
+            var addLeft = Width - Width / Scale;
+            var addTop = Height - Height / Scale;
 
-            add_left /= 2;
-            add_top /= 2;
+            addLeft /= 2;
+            addTop /= 2;
 
-            left += add_left;
-            top += add_top;
+            left += addLeft;
+            top += addTop;
 
-            right -= add_left;
-            bottom -= add_top;
+            right -= addLeft;
+            bottom -= addTop;
         }
 
         SetMatrixValue(left, right, bottom, top);

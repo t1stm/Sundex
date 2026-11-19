@@ -1,4 +1,4 @@
-using Sundex.Engine.Renderer.Data_Buffers;
+using Sundex.Engine.Renderer.Buffers;
 using Sundex.Engine.Renderer.Queues;
 
 namespace Sundex.Components.Tests;

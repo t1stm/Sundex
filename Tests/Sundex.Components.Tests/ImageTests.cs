@@ -2,14 +2,13 @@ using System.Net;
 using System.Net.Sockets;
 using OpenTK.Mathematics;
 using Serilog;
-using Sundex.Components;
-using Sundex.Core.Renderer.Planes;
 using Sundex.Components.Abstractions;
 using Sundex.Components.Abstractions.Values;
 using Sundex.Components.Panels;
+using Sundex.Core.Renderer.Planes;
 using Sundex.Engine;
-using Sundex.Engine.Asset_Management;
-using Sundex.Engine.Asset_Management.Types.Asset;
+using Sundex.Engine.AssetManagement;
+using Sundex.Engine.AssetManagement.Types.Asset;
 using Sundex.Engine.Renderer.Textures;
 using Sundex.Style.DSL;
 

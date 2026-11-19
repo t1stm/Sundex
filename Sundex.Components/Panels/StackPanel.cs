@@ -1,3 +1,4 @@
+using Sundex.Components.Attributes;
 using System.Reflection;
 using Sundex.Components.Abstractions;
 using Sundex.Style.DSL;
@@ -6,7 +7,7 @@ using Sundex.Style.DSL.Abstract.Values;
 
 namespace Sundex.Components.Panels;
 
-[Sundex.Components.Attributes.MarkupTag("stack")]
+[MarkupTag("stack")]
 public class StackPanel(UIContext context)
     : Panel(context)
 {

@@ -39,7 +39,7 @@ public class Tooltip : FlexPanel
     public double DelayMs { get; set; } = 400;
 
     /// <summary>The widest the bubble gets before its text wraps.</summary>
-    public float MaxWidth { get; set; } = 280;
+    public float BubbleMaxWidth { get; set; } = 280;
 
     protected override void HoverChanged(bool hovered)
     {
@@ -71,7 +71,7 @@ public class Tooltip : FlexPanel
         {
             Position = Placement.Absolute,
             PointerEvents = PointerEvents.None,
-            MaxWidth = MaxWidth,
+            MaxWidth = BubbleMaxWidth,
             Padding = 6,
             BorderRadius = 4,
             Fill = new OpenTK.Mathematics.Vector4(0.08f, 0.07f, 0.12f, 0.96f)
@@ -82,7 +82,7 @@ public class Tooltip : FlexPanel
         host.AddChild(_bubble);
 
         // Above the content, or below it when the top of the window is in the way; kept on screen.
-        var (width, height) = _bubble.Measure(MaxWidth, Context.ViewportHeight);
+        var (width, height) = _bubble.Measure(BubbleMaxWidth, Context.ViewportHeight);
         var x = Math.Clamp(Computed.AbsoluteX + Computed.Width / 2 - width / 2, 4, Math.Max(4, Context.ViewportWidth - width - 4));
         var y = Computed.AbsoluteY - height - 6;
         if (y < 4) y = Computed.AbsoluteY + Computed.Height + 6;

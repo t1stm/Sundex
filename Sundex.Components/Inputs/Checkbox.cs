@@ -1,9 +1,10 @@
 using OpenTK.Mathematics;
-using Sundex.Core.Renderer.Planes;
 using Sundex.Components.Abstractions;
 using Sundex.Components.Abstractions.Values;
+using Sundex.Components.Attributes;
 using Sundex.Components.Labels;
 using Sundex.Components.Panels;
+using Sundex.Core.Renderer.Planes;
 using Sundex.Engine.Renderer.Abstract.Extensions;
 
 namespace Sundex.Components.Inputs;
@@ -13,7 +14,7 @@ namespace Sundex.Components.Inputs;
 ///     Consumers listen through <see cref="OnCheckedChanged" /> - <see cref="UIElement.OnClick" />
 ///     is used internally for the toggle, don't overwrite it.
 /// </summary>
-[Sundex.Components.Attributes.MarkupTag("checkbox")]
+[MarkupTag("checkbox")]
 public class Checkbox : StackPanel
 {
     private const float BoxSize = 18;

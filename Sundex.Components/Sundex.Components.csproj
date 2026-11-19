@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Assets\Textures\image-invalid.png"/>
-    <EmbeddedResource Include="File Selector\FileSelection.snx.ss" LogicalName="Sundex.Components.FileSelection.snx.ss"/>
+    <EmbeddedResource Include="FileSelector\FileSelection.snx.ss" LogicalName="Sundex.Components.FileSelection.snx.ss"/>
   </ItemGroup>
 
   <ItemGroup>

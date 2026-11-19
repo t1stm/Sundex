@@ -132,12 +132,8 @@ public class CursorTests
         Assert.Equal(CursorType.Default, context.CursorAtPointer);
     }
 
-    private class TestElement : UIElement
+    private class TestElement(UIContext context) : UIElement(context)
     {
-        public TestElement(UIContext context) : base(context)
-        {
-        }
-
         public override string Tag => "test-element";
 
         protected override void DrawSelf(UIContext context)

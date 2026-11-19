@@ -2,13 +2,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using OpenTK.Mathematics;
 using Serilog;
-using Sundex.Components;
 using Sundex.Components.Abstractions;
 using Sundex.Components.Attributes;
 using Sundex.Components.Panels;
 using Sundex.Core;
 using Sundex.Engine;
-using Sundex.Engine.Asset_Management;
+using Sundex.Engine.AssetManagement;
 using Sundex.Engine.Renderer.Abstract;
 using Sundex.Engine.Renderer.Cameras;
 using Sundex.Style.DSL;
@@ -507,7 +506,7 @@ public class RenderQueueTests
         public new int Index
         {
             get => base.Index;
-            set => base.Index = value;
+            init => base.Index = value;
         }
 
         [RenderPriority(0)] public Renderable? Background { get; set; }

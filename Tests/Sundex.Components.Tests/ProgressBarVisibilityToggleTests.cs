@@ -1,11 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 using OpenTK.Mathematics;
-using Sundex.Components;
-using Sundex.Core.Renderer.Planes;
 using Sundex.Components.Abstractions;
 using Sundex.Components.Abstractions.Values;
 using Sundex.Components.Bars;
 using Sundex.Components.Panels;
+using Sundex.Core.Renderer.Planes;
 using Sundex.Engine.Renderer.Abstract;
 
 namespace Sundex.Components.Tests;
@@ -69,7 +68,7 @@ public class ProgressBarVisibilityToggleTests
             Camera = new UICamera(Vector3.Zero, new Vector2i(1920, 1080));
         }
 
-        public List<List<IRenderable>> Queue => LayeredRenderQueue;
+        private List<List<IRenderable>> Queue => LayeredRenderQueue;
 
         public int LayerOf(IRenderable renderable)
         {

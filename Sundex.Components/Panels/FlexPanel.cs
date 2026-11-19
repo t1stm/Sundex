@@ -556,7 +556,7 @@ public class FlexPanel : Panel, IPositioningElement
         _ => CrossAlign
     };
 
-    private static float Margin(LiteralOrComputable margin, float reference) =>
+    private static float ResolveMargin(LiteralOrComputable margin, float reference) =>
         margin.Auto ? 0 : margin.Resolve(reference);
 
     private static float Clamp(float value, float min, LiteralOrComputable max, float reference)
@@ -598,7 +598,7 @@ public class FlexPanel : Panel, IPositioningElement
             else basis = Size(child, capW, innerH).Width;
             basis = Clamp(basis, child.MinWidth, child.MaxWidth, innerW);
             sizes[index] = basis;
-            used += basis + Margin(child.MarginLeft, innerW) + Margin(child.MarginRight, innerW);
+            used += basis + ResolveMargin(child.MarginLeft, innerW) + ResolveMargin(child.MarginRight, innerW);
             growth += child.Grow;
         }
 
@@ -653,7 +653,7 @@ public class FlexPanel : Panel, IPositioningElement
                 : Size(child, sizes[index], innerH).Height;
             height = Clamp(height, child.MinHeight, child.MaxHeight, crossRef);
             heights[index] = height;
-            lineH = Math.Max(lineH, height + Margin(child.MarginTop, innerW) + Margin(child.MarginBottom, innerW));
+            lineH = Math.Max(lineH, height + ResolveMargin(child.MarginTop, innerW) + ResolveMargin(child.MarginBottom, innerW));
         }
 
         if (!commit) return (Math.Min(natural, used), lineH);
@@ -673,10 +673,10 @@ public class FlexPanel : Panel, IPositioningElement
         for (var index = 0; index < itemCount; index++)
         {
             var child = items[index];
-            var marginTop = Margin(child.MarginTop, innerW);
-            var marginBottom = Margin(child.MarginBottom, innerW);
+            var marginTop = ResolveMargin(child.MarginTop, innerW);
+            var marginBottom = ResolveMargin(child.MarginBottom, innerW);
             if (child.MarginLeft.Auto) x += share;
-            x += Margin(child.MarginLeft, innerW);
+            x += ResolveMargin(child.MarginLeft, innerW);
 
             var align = AlignOf(child);
             var height = heights[index];
@@ -690,7 +690,7 @@ public class FlexPanel : Panel, IPositioningElement
             };
 
             PlaceChild(child, x + child.TranslateX, y + child.TranslateY, sizes[index], height);
-            x += sizes[index] + Margin(child.MarginRight, innerW) + ColumnGap + between;
+            x += sizes[index] + ResolveMargin(child.MarginRight, innerW) + ColumnGap + between;
             if (child.MarginRight.Auto) x += share;
         }
 
@@ -727,7 +727,7 @@ public class FlexPanel : Panel, IPositioningElement
             while (end < itemCount)
             {
                 var child = items[end];
-                var extent = widths[end] + Margin(child.MarginLeft, innerW) + Margin(child.MarginRight, innerW);
+                var extent = widths[end] + ResolveMargin(child.MarginLeft, innerW) + ResolveMargin(child.MarginRight, innerW);
                 var gap = end == at ? 0 : ColumnGap;
                 if (end > at && used + gap + extent > innerW + WrapSlack) break;
                 used += gap + extent;
@@ -761,7 +761,7 @@ public class FlexPanel : Panel, IPositioningElement
                     : child.AspectRatio > 0 ? widths[at + index] / child.AspectRatio
                     : Size(child, widths[at + index], innerH).Height;
                 heights[index] = Clamp(height, child.MinHeight, child.MaxHeight, crossRef);
-                lineH = Math.Max(lineH, heights[index] + Margin(child.MarginTop, innerW) + Margin(child.MarginBottom, innerW));
+                lineH = Math.Max(lineH, heights[index] + ResolveMargin(child.MarginTop, innerW) + ResolveMargin(child.MarginBottom, innerW));
             }
 
             if (!firstLine) y += RowGap;
@@ -772,9 +772,9 @@ public class FlexPanel : Panel, IPositioningElement
                 for (var index = 0; index < count; index++)
                 {
                     var child = items[at + index];
-                    var marginTop = Margin(child.MarginTop, innerW);
-                    var marginBottom = Margin(child.MarginBottom, innerW);
-                    x += Margin(child.MarginLeft, innerW);
+                    var marginTop = ResolveMargin(child.MarginTop, innerW);
+                    var marginBottom = ResolveMargin(child.MarginBottom, innerW);
+                    x += ResolveMargin(child.MarginLeft, innerW);
                     var height = heights[index];
                     var align = AlignOf(child);
                     if (align == Align.Stretch && !Sized(child.Height) && child.AspectRatio <= 0)
@@ -787,7 +787,7 @@ public class FlexPanel : Panel, IPositioningElement
                     };
                     PlaceChild(child, InsetLeft + x - _scrollX + child.TranslateX,
                         InsetTop + y + marginTop + offset - _scrollY + child.TranslateY, widths[at + index], height);
-                    x += widths[at + index] + Margin(child.MarginRight, innerW) + ColumnGap + between;
+                    x += widths[at + index] + ResolveMargin(child.MarginRight, innerW) + ColumnGap + between;
                 }
             }
 
@@ -800,7 +800,7 @@ public class FlexPanel : Panel, IPositioningElement
         return (maxW, y);
     }
 
-    private static bool IsShare(LiteralOrComputable size) => !size.Auto && size.IsPercentage;
+    private static bool IsShare(LiteralOrComputable size) => size is { Auto: false, IsPercentage: true };
 
     /// <summary>
     ///     Gives each child with a percentage on the main axis its share of the space the others
@@ -872,7 +872,7 @@ public class FlexPanel : Panel, IPositioningElement
         for (var index = 0; index < itemCount; index++)
         {
             var child = items[index];
-            var available = innerW - Margin(child.MarginLeft, innerW) - Margin(child.MarginRight, innerW);
+            var available = innerW - ResolveMargin(child.MarginLeft, innerW) - ResolveMargin(child.MarginRight, innerW);
             var align = AlignOf(child);
 
             float width;
@@ -893,7 +893,7 @@ public class FlexPanel : Panel, IPositioningElement
             basis = Clamp(basis, child.MinHeight, child.MaxHeight, mainRef);
             sizes[index] = basis;
 
-            used += basis + Margin(child.MarginTop, innerW) + Margin(child.MarginBottom, innerW);
+            used += basis + ResolveMargin(child.MarginTop, innerW) + ResolveMargin(child.MarginBottom, innerW);
             growth += child.Grow;
             var natural = align == Align.Stretch && !commit && !Sized(child.Width) ? Size(child, available, capH).Width : width;
             maxW = Math.Max(maxW, natural + innerW - available);
@@ -950,9 +950,9 @@ public class FlexPanel : Panel, IPositioningElement
         {
             var child = items[index];
             if (child.MarginTop.Auto) y += share;
-            y += Margin(child.MarginTop, innerW);
-            var marginLeft = Margin(child.MarginLeft, innerW);
-            var available = innerW - marginLeft - Margin(child.MarginRight, innerW);
+            y += ResolveMargin(child.MarginTop, innerW);
+            var marginLeft = ResolveMargin(child.MarginLeft, innerW);
+            var available = innerW - marginLeft - ResolveMargin(child.MarginRight, innerW);
             var x = InsetLeft + marginLeft - _scrollX;
             if (child.MarginLeft.Auto && child.MarginRight.Auto) x += (available - widths[index]) / 2;
             else if (child.MarginLeft.Auto) x += available - widths[index];
@@ -965,7 +965,7 @@ public class FlexPanel : Panel, IPositioningElement
                 };
 
             PlaceChild(child, x + child.TranslateX, y + child.TranslateY, widths[index], sizes[index]);
-            y += sizes[index] + Margin(child.MarginBottom, innerW) + RowGap + between;
+            y += sizes[index] + ResolveMargin(child.MarginBottom, innerW) + RowGap + between;
             if (child.MarginBottom.Auto) y += share;
         }
 

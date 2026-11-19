@@ -1,5 +1,4 @@
 using Sundex.Components.Abstractions;
-using Sundex.Components.Abstractions.Values;
 using Sundex.Components.Labels;
 using Sundex.Components.Panels;
 
@@ -8,7 +7,7 @@ namespace Sundex.Components.Tests;
 /// <summary>The text features Label gained in the fork. The mock glyph is 0.6 em: 9.6 px at 16 px.</summary>
 public class LabelFeatureTests
 {
-    private static (FlexPanel Column, Label Label) InColumn(string text, float width, Action<Label> setup)
+    private static Label InColumn(string text, float width, Action<Label> setup)
     {
         var context = new TestUIContext();
         var column = new FlexPanel(context)
@@ -19,13 +18,13 @@ public class LabelFeatureTests
         setup(label);
         column.Children = [label];
         column.Layout();
-        return (column, label);
+        return label;
     }
 
     [Fact]
     public void AWrappingLabelBreaksToTheWidthItIsGiven()
     {
-        var (_, label) = InColumn("aaa bbb ccc", 80, target => target.Wrap = true);
+        var label = InColumn("aaa bbb ccc", 80, target => target.Wrap = true);
 
         Assert.Equal("aaa bbb\nccc", label.Shown);
         Assert.Equal(2, label.LineCount);
@@ -35,7 +34,7 @@ public class LabelFeatureTests
     [Fact]
     public void ATruncatedLabelEndsInAnEllipsis()
     {
-        var (_, label) = InColumn("abcdefghijklmnop", 50, target => target.Truncate = true);
+        var label = InColumn("abcdefghijklmnop", 50, target => target.Truncate = true);
 
         Assert.EndsWith("…", label.Shown);
         Assert.Equal(1, label.LineCount);
@@ -45,7 +44,7 @@ public class LabelFeatureTests
     [Fact]
     public void LineClampStopsAfterThatManyLines()
     {
-        var (_, label) = InColumn("aaa bbb ccc ddd eee", 40, target => target.LineClamp = 2);
+        var label = InColumn("aaa bbb ccc ddd eee", 40, target => target.LineClamp = 2);
 
         Assert.Equal(2, label.LineCount);
         Assert.EndsWith("…", label.Shown);
@@ -54,7 +53,7 @@ public class LabelFeatureTests
     [Fact]
     public void UppercaseChangesWhatIsShownNotTheText()
     {
-        var (_, label) = InColumn("quiet", 300, target => target.TextTransform = TextTransform.Uppercase);
+        var label = InColumn("quiet", 300, target => target.TextTransform = TextTransform.Uppercase);
 
         Assert.Equal("QUIET", label.Shown);
         Assert.Equal("quiet", label.Text);

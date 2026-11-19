@@ -24,7 +24,7 @@ public readonly struct LiteralOrComputable(float value, bool isPercentage = fals
         if (percent) value = value[..^1];
         else if (value.EndsWith("px", StringComparison.OrdinalIgnoreCase)) value = value[..^2];
         return new LiteralOrComputable(
-            float.Parse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture),
+            float.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture),
             percent);
     }
 

@@ -21,8 +21,6 @@ namespace Sundex.Slug.Fonts;
 /// </summary>
 internal sealed class OutlineGlyphRenderer(Shape shape, double unitsPerEm) : IGlyphRenderer
 {
-    private readonly double _unitsPerEm = unitsPerEm;
-
     private Vector2d _current;
     private Vector2d _start;
     private bool _inFigure;
@@ -133,6 +131,6 @@ internal sealed class OutlineGlyphRenderer(Shape shape, double unitsPerEm) : IGl
 
     private Vector2d Transform(Vector2 point)
     {
-        return new Vector2d(point.X / _unitsPerEm, -point.Y / _unitsPerEm);
+        return new Vector2d(point.X / unitsPerEm, -point.Y / unitsPerEm);
     }
 }

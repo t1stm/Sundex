@@ -187,7 +187,7 @@ public class SlugDataTests(ITestOutputHelper output)
         return new Vector4(data.Glyphs[start], data.Glyphs[start + 1], data.Glyphs[start + 2], data.Glyphs[start + 3]);
     }
 
-    internal record struct DecodedCurve(int X, int Y, Vector2 Point1, Vector2 Point2, Vector2 Point3)
+    internal readonly record struct DecodedCurve(int X, int Y, Vector2 Point1, Vector2 Point2, Vector2 Point3)
     {
         public float MinX => MathF.Min(MathF.Min(Point1.X, Point2.X), Point3.X);
         public float MaxX => MathF.Max(MathF.Max(Point1.X, Point2.X), Point3.X);

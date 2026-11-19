@@ -22,15 +22,15 @@ public class SeekableStopwatch : ISeekableStopwatch
                 return LastValue;
             }
 
-            var current_time = GetCurrentTime();
+            var currentTime = GetCurrentTime();
 
             if (StopTime != null)
             {
-                StartTime += current_time - StopTime.Value;
+                StartTime += currentTime - StopTime.Value;
                 StopTime = null;
             }
 
-            var val = LastValue = Stopwatch.GetElapsedTime(StartTime, current_time);
+            var val = LastValue = Stopwatch.GetElapsedTime(StartTime, currentTime);
 
             Lock.Release();
             return val;
@@ -86,12 +86,12 @@ public class SeekableStopwatch : ISeekableStopwatch
     {
         Lock.Wait();
 
-        var wanted_time = TimeSpan.FromMilliseconds(delta);
-        LastValue = wanted_time;
+        var wantedTime = TimeSpan.FromMilliseconds(delta);
+        LastValue = wantedTime;
 
         var current = GetCurrentTime();
-        var delta_time = current - wanted_time.Ticks * Stopwatch.Frequency / 10000000;
-        StartTime = delta_time;
+        var deltaTime = current - wantedTime.Ticks * Stopwatch.Frequency / 10000000;
+        StartTime = deltaTime;
 
         // Anchored whenever the clock is not accruing, so the wait between a seek and the
         // start that follows it is not counted as elapsed time. Covers a clock that has

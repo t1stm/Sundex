@@ -1,8 +1,8 @@
 using System.Buffers;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
-using Sundex.Engine.Asset_Management;
-using Sundex.Engine.Asset_Management.Types.Shader;
+using Sundex.Engine.AssetManagement;
+using Sundex.Engine.AssetManagement.Types.Shader;
 using Sundex.Engine.Renderer.Enums;
 
 namespace Sundex.Engine.Renderer.Shaders;
@@ -113,9 +113,9 @@ public class Shader(AssetProvider assetProvider, params ShaderSource[] shaderSou
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(Handle, 1);
         GL.LinkProgram(Handle);
-        GL.GetProgrami(Handle, ProgramProperty.LinkStatus, out var link_status);
+        GL.GetProgrami(Handle, ProgramProperty.LinkStatus, out var linkStatus);
 
-        if (link_status != 0) return;
+        if (linkStatus != 0) return;
         GL.GetProgramInfoLog(Handle, out var error);
         throw new Exception($"Program failed to link with error: {error}");
     }

@@ -1,8 +1,8 @@
 using OpenTK.Graphics.OpenGL;
-using Sundex.Engine.Asset_Management;
+using Sundex.Engine.AssetManagement;
 using Sundex.Engine.Renderer.Abstract;
 using Sundex.Engine.Renderer.Attributes;
-using Sundex.Engine.Renderer.Data_Buffers;
+using Sundex.Engine.Renderer.Buffers;
 using Sundex.Engine.Renderer.Enums;
 using Sundex.Engine.Renderer.Queues;
 
@@ -105,9 +105,13 @@ public class VertexArrayObject : IBindable, IGamePreloadable, IDisposable
 
             // Integer attributes reach an `in uint`/`in int` input only through the I variant; the
             // plain one converts them to float.
-            if (!element.Normalized && element.Type is VertexAttribPointerType.UnsignedByte or VertexAttribPointerType.Byte
+            if (element is
+                {
+                    Normalized: false,
+                    Type: VertexAttribPointerType.UnsignedByte or VertexAttribPointerType.Byte
                     or VertexAttribPointerType.UnsignedShort or VertexAttribPointerType.Short
-                    or VertexAttribPointerType.UnsignedInt or VertexAttribPointerType.Int)
+                    or VertexAttribPointerType.UnsignedInt or VertexAttribPointerType.Int
+                })
                 GL.VertexAttribIPointer(vertex, element.Count, (VertexAttribIType)element.Type, layout.GetStride(),
                     new IntPtr(offset));
             else

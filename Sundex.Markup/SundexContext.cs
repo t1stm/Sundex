@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Reflection;
 using Sundex.Components.Abstractions;
-using Sundex.Engine.Asset_Management.Extensions;
+using Sundex.Engine.AssetManagement.Extensions;
 using Sundex.Markup.Abstract;
 using Sundex.Markup.Attributes;
 using Sundex.Markup.Builders;

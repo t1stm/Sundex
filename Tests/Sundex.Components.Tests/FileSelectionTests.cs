@@ -1,7 +1,7 @@
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using Sundex.Components.Abstractions;
-using Sundex.Components.File_Selector;
+using Sundex.Components.FileSelector;
 using Sundex.Components.Inputs;
 using Sundex.Components.Labels;
 using Sundex.Components.Panels;
@@ -95,7 +95,7 @@ public class FileSelectionTests
         var selection = new FileSelection(new TestUIContext(), "song.tdwproj", ".tdwproj");
         var field = Descendants(selection).OfType<TextInput>().Single();
 
-        Assert.Equal("song", field.Value.ToString());
+        Assert.Equal("song", field.Value);
         Assert.Equal(Path.Combine(selection.CurrentPath, "song.tdwproj"), selection.SelectedPath);
     }
 

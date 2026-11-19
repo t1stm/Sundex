@@ -1,12 +1,12 @@
 using System.Reflection;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using Sundex.Core.Renderer.Planes;
-using Sundex.Components.Renderer.Planes.Extensions;
 using Sundex.Components.Abstractions;
 using Sundex.Components.Abstractions.Values;
 using Sundex.Components.Attributes;
 using Sundex.Components.Panels;
+using Sundex.Components.Renderer.Planes.Extensions;
+using Sundex.Core.Renderer.Planes;
 using Sundex.Style.DSL;
 using Sundex.Style.DSL.Abstract;
 using Sundex.Style.DSL.Abstract.Values;
@@ -14,7 +14,7 @@ using Sundex.Style.DSL.Abstract.Values.Keywords;
 
 namespace Sundex.Components.Bars;
 
-[Sundex.Components.Attributes.MarkupTag("progress")]
+[MarkupTag("progress")]
 public class ProgressBar : UIElement
 {
     public ProgressBar(UIContext context, Panel backgroundPanel, Panel foregroundPanel)

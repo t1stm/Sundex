@@ -2,6 +2,7 @@ using Sundex.Components.Abstractions;
 using Sundex.Components.Attributes;
 using Sundex.Components.Labels;
 using Sundex.Components.Panels;
+using Sundex.Style.DSL;
 
 namespace Sundex.Components.Inputs;
 
@@ -78,7 +79,7 @@ public class Segmented : FlexPanel
         }
     }
 
-    public override void ApplyStyleSheet(Sundex.Style.DSL.StyleSheet styleSheet)
+    public override void ApplyStyleSheet(StyleSheet styleSheet)
     {
         base.ApplyStyleSheet(styleSheet);
         foreach (var segment in _segments) segment.Button.ApplyStyleSheet(styleSheet);

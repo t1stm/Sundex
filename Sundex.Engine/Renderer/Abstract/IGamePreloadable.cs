@@ -1,5 +1,5 @@
 using JetBrains.Annotations;
-using Sundex.Engine.Asset_Management;
+using Sundex.Engine.AssetManagement;
 
 namespace Sundex.Engine.Renderer.Abstract;
 

@@ -1,11 +1,11 @@
 using System.Reflection;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using Sundex.Core.Renderer.Planes;
-using Sundex.Components.Renderer.Planes.Extensions;
 using Sundex.Components.Abstractions;
 using Sundex.Components.Abstractions.Values;
 using Sundex.Components.Attributes;
+using Sundex.Components.Renderer.Planes.Extensions;
+using Sundex.Core.Renderer.Planes;
 using Sundex.Engine.Renderer.Abstract.Extensions;
 using Sundex.Style.DSL;
 using Sundex.Style.DSL.Abstract;
@@ -14,7 +14,7 @@ using Sundex.Style.DSL.Abstract.Values.Keywords;
 
 namespace Sundex.Components.Panels;
 
-[Sundex.Components.Attributes.MarkupTag("panel")]
+[MarkupTag("panel")]
 public partial class Panel(UIContext context) : UIElement(context), IColoredBackground, IPositioningElement
 {
     private List<UIElement> _children = [];
@@ -210,7 +210,7 @@ public partial class Panel(UIContext context) : UIElement(context), IColoredBack
     protected override bool ChildrenNeedLayout()
     {
         foreach (var child in _children)
-            if (child.NeedsLayout && child.Visible)
+            if (child is { NeedsLayout: true, Visible: true })
                 return true;
         return false;
     }

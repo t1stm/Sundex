@@ -87,25 +87,25 @@ public abstract class Renderable : IRenderable, IPositionable, IClippable
         var scale = Scale;
         var translation = Translation;
 
-        var temp_translation = Vector3.Zero;
-        var temp_scale = Vector3.One;
-        var temp_rotation = Vector3.Zero;
+        var tempTranslation = Vector3.Zero;
+        var tempScale = Vector3.One;
+        var tempRotation = Vector3.Zero;
 
         foreach (var animation in animations)
             if ((IsChild && animation.AffectsChildren) || !IsChild)
-                ComputeAnimation(animation, ref temp_translation, ref temp_scale, ref temp_rotation);
+                ComputeAnimation(animation, ref tempTranslation, ref tempScale, ref tempRotation);
 
-        var final_translation = position + translation + temp_translation;
-        var final_scale = scale * temp_scale;
-        var final_rotation = Rotation + temp_rotation;
+        var finalTranslation = position + translation + tempTranslation;
+        var finalScale = scale * tempScale;
+        var finalRotation = Rotation + tempRotation;
 
-        model *= Matrix4.CreateScale(final_scale);
+        model *= Matrix4.CreateScale(finalScale);
 
-        model *= Matrix4.CreateRotationX(final_rotation.X) *
-                 Matrix4.CreateRotationY(final_rotation.Y) *
-                 Matrix4.CreateRotationZ(final_rotation.Z);
+        model *= Matrix4.CreateRotationX(finalRotation.X) *
+                 Matrix4.CreateRotationY(finalRotation.Y) *
+                 Matrix4.CreateRotationZ(finalRotation.Z);
 
-        model *= Matrix4.CreateTranslation(final_translation);
+        model *= Matrix4.CreateTranslation(finalTranslation);
 
         foreach (var renderable in Children) renderable.UpdateModel(true, animations);
 
@@ -122,23 +122,23 @@ public abstract class Renderable : IRenderable, IPositionable, IClippable
     private void ComputeAnimation(Animation animation, ref Vector3 finalTranslation, ref Vector3 finalScale,
         ref Vector3 finalRotation)
     {
-        var bit_stack = animation.Features;
+        var bitStack = animation.Features;
 
-        if (bit_stack.IsEnabled(AnimationFeature.TransformMultiply))
+        if (bitStack.IsEnabled(AnimationFeature.TransformMultiply))
         {
-            var transform_multiply = animation.GetTransform_Multiply(this);
-            if (transform_multiply != Vector3.One)
-                finalTranslation *= transform_multiply;
+            var transformMultiply = animation.GetTransform_Multiply(this);
+            if (transformMultiply != Vector3.One)
+                finalTranslation *= transformMultiply;
         }
 
-        if (bit_stack.IsEnabled(AnimationFeature.TransformAdd))
+        if (bitStack.IsEnabled(AnimationFeature.TransformAdd))
         {
-            var transform_add = animation.GetTransform_Add(this);
-            if (transform_add != Vector3.One)
-                finalTranslation += transform_add;
+            var transformAdd = animation.GetTransform_Add(this);
+            if (transformAdd != Vector3.One)
+                finalTranslation += transformAdd;
         }
 
-        if (bit_stack.IsEnabled(AnimationFeature.ScaleMultiply))
+        if (bitStack.IsEnabled(AnimationFeature.ScaleMultiply))
         {
             var scale = animation.GetScale_Multiply(this);
 
@@ -146,7 +146,7 @@ public abstract class Renderable : IRenderable, IPositionable, IClippable
                 finalScale *= scale;
         }
 
-        if (bit_stack.IsEnabled(AnimationFeature.ScaleAdd))
+        if (bitStack.IsEnabled(AnimationFeature.ScaleAdd))
         {
             var scale = animation.GetScale_Add(this);
 
@@ -154,7 +154,7 @@ public abstract class Renderable : IRenderable, IPositionable, IClippable
                 finalScale += scale;
         }
 
-        if (bit_stack.IsEnabled(AnimationFeature.RotationAdd))
+        if (bitStack.IsEnabled(AnimationFeature.RotationAdd))
         {
             var rotation = animation.GetRotation_XYZ(this);
 
@@ -162,14 +162,14 @@ public abstract class Renderable : IRenderable, IPositionable, IClippable
                 finalRotation += rotation;
         }
 
-        if (bit_stack.IsEnabled(AnimationFeature.ColorValue))
+        if (bitStack.IsEnabled(AnimationFeature.ColorValue))
         {
-            var color_change = animation.GetColor_Value(this);
-            if (color_change != Vector4.Zero)
-                Color = color_change;
+            var colorChange = animation.GetColor_Value(this);
+            if (colorChange != Vector4.Zero)
+                Color = colorChange;
         }
 
-        if (!bit_stack.IsEnabled(AnimationFeature.DeltaAlpha)) return;
+        if (!bitStack.IsEnabled(AnimationFeature.DeltaAlpha)) return;
         InverseAlpha = animation.GetAlphaDelta_Value(this);
         Color = new Vector4(Color.X, Color.Y, Color.Z, 1 - InverseAlpha);
     }

@@ -1,9 +1,9 @@
 using OpenTK.Mathematics;
-using Sundex.Core.Renderer.Planes;
 using Sundex.Components.Abstractions;
 using Sundex.Components.Attributes;
-using Sundex.Engine.Asset_Management.Types.Asset;
-using Sundex.Engine.Asset_Management.Types.Texture;
+using Sundex.Core.Renderer.Planes;
+using Sundex.Engine.AssetManagement.Types.Asset;
+using Sundex.Engine.AssetManagement.Types.Texture;
 using Sundex.Engine.Renderer.Abstract.Extensions;
 using Sundex.Engine.Renderer.Enums;
 using Sundex.Engine.Renderer.Textures;
@@ -38,7 +38,7 @@ public enum TextureFit
 ///         state override, or be assigned at runtime, and any of those may change at any time.
 ///     </para>
 /// </summary>
-[Sundex.Components.Attributes.MarkupTag("image")]
+[MarkupTag("image")]
 public class Image : Panel
 {
     /// <summary>Lucide's image-off, embedded in this assembly.</summary>
@@ -495,7 +495,7 @@ public class Image : Panel
     protected override void OnOpacityChanged()
     {
         base.OnOpacityChanged();
-        _plane.Color = new OpenTK.Mathematics.Vector4(1, 1, 1, EffectiveOpacity);
+        _plane.Color = new Vector4(1, 1, 1, EffectiveOpacity);
     }
 
     protected override void OnDispose()

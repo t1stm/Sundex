@@ -1,6 +1,7 @@
 using OpenTK.Mathematics;
 using Sundex.Components.Abstractions;
 using Sundex.Components.Abstractions.Values;
+using Sundex.Components.Attributes;
 using Sundex.Components.Panels;
 
 namespace Sundex.Components.Scroll;
@@ -12,7 +13,7 @@ namespace Sundex.Components.Scroll;
 ///     The bar overlays the content's right edge and hides while the content fits. Its gutter
 ///     stays reserved either way, so rows don't reflow when it comes and goes.
 /// </summary>
-[Sundex.Components.Attributes.MarkupTag("scroll-view")]
+[MarkupTag("scroll-view")]
 public class ScrollView : Panel
 {
     // Breathing room on both sides: between the rightmost content and the bar

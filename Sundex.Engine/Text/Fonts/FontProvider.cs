@@ -1,5 +1,5 @@
-using Sundex.Engine.Asset_Management;
-using Sundex.Engine.Asset_Management.Types.Asset;
+using Sundex.Engine.AssetManagement;
+using Sundex.Engine.AssetManagement.Types.Asset;
 using Sundex.Slug;
 
 namespace Sundex.Engine.Text.Fonts;

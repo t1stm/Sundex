@@ -1,5 +1,4 @@
 using OpenTK.Mathematics;
-using Sundex.Core;
 using Sundex.Core.Animations;
 using Sundex.Engine.Renderer.Cameras;
 using Sundex.Engine.Renderer.Shaders;

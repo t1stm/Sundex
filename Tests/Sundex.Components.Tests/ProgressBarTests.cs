@@ -1,9 +1,8 @@
 using OpenTK.Mathematics;
-using Sundex.Components;
-using Sundex.Core.Renderer.Planes;
 using Sundex.Components.Abstractions;
 using Sundex.Components.Bars;
 using Sundex.Components.Panels;
+using Sundex.Core.Renderer.Planes;
 using Sundex.Engine.Renderer.Abstract;
 using Sundex.Style.DSL;
 using Sundex.Style.DSL.Abstract.Values;
@@ -31,7 +30,6 @@ public class ProgressBarTests
         // Assert
         var queue = context.GetRenderQueue();
         var found = queue.Any(layer => layer.Any(item => item == progressBar.BackgroundPanel.Background));
-        ;
 
         Assert.True(found, "New BackgroundPanel's background should be in the render queue");
         Assert.Equal(progressBar, progressBar.BackgroundPanel.Parent);

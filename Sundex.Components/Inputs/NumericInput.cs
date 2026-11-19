@@ -2,10 +2,10 @@ using System.Globalization;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using Sundex.Core.Renderer.Planes;
 using Sundex.Components.Abstractions;
 using Sundex.Components.Attributes;
 using Sundex.Components.Labels;
+using Sundex.Core.Renderer.Planes;
 
 namespace Sundex.Components.Inputs;
 
@@ -16,7 +16,7 @@ namespace Sundex.Components.Inputs;
 ///     While typing, <see cref="Value" /> parses the raw text live; the text itself is
 ///     normalized (clamped/reformatted, or reverted to the last committed value) on blur.
 /// </summary>
-[Sundex.Components.Attributes.MarkupTag("numeric-input")]
+[MarkupTag("numeric-input")]
 public class NumericInput : TextInput
 {
     private readonly SpinnerButton _minus;
@@ -178,6 +178,7 @@ public class NumericInput : TextInput
         // value, or keep it empty (null) when AllowNull. Assigned unconditionally, because
         // text that parsed fine still needs the reformat - "150" typed against a Max of
         // 100 has to show 100, not its raw text.
+        // ReSharper disable once ConvertToNullCoalescingCompoundAssignment
         Value = Value ?? (AllowNull ? null : _lastValid);
     }
 

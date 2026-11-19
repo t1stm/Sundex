@@ -1,14 +1,14 @@
-using Sundex.Engine;
 using System.Buffers;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using Sundex.Core.Renderer.Planes;
 using Sundex.Components.Abstractions;
 using Sundex.Components.Abstractions.Values;
 using Sundex.Components.Attributes;
 using Sundex.Components.Labels;
 using Sundex.Components.Panels;
+using Sundex.Core.Renderer.Planes;
+using Sundex.Engine;
 using Sundex.Engine.Renderer.Abstract.Extensions;
 
 namespace Sundex.Components.Inputs;
@@ -35,7 +35,7 @@ public enum TextInputFilter
 /// </summary>
 // ponytail: caret/selection indices are char-based; surrogate pairs can be split by
 // arrow keys/backspace. Fine for project names and numbers; revisit if emoji matter.
-[Sundex.Components.Attributes.MarkupTag("text-input")]
+[MarkupTag("text-input")]
 public class TextInput : Panel
 {
     private readonly ColoredPlane _caretPlane = new() { Color = Vector4.One };
@@ -231,7 +231,6 @@ public class TextInput : Panel
     public Action<TextInput>? OnValueChanged { get; set; }
     public Action<TextInput>? OnCommit { get; set; }
 
-    private float FontSize => _label.FontSizePx.Resolve(14);
     private float LineHeight => _label.LinePixels;
 
     /// <summary>Width at the right end of the content area not available to text (e.g. spinner buttons).</summary>
