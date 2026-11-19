@@ -5,9 +5,6 @@ namespace Sundex.Engine.Renderer.Textures.Atlases;
 
 public sealed class GuillotineAtlas : IAtlas
 {
-    [JsonInclude] [JsonPropertyName("rotatable")]
-    private readonly bool _allowRotation;
-
     [JsonInclude] [JsonPropertyName("freeRects")]
     private readonly List<Rectangle> _freeRects = [];
 
@@ -17,14 +14,13 @@ public sealed class GuillotineAtlas : IAtlas
     [JsonInclude] [JsonPropertyName("usedArea")]
     private int _usedArea;
 
-    public GuillotineAtlas(int width, int height, bool allowRotation = false)
+    public GuillotineAtlas(int width, int height)
     {
         if (width <= 0 || height <= 0)
             throw new ArgumentOutOfRangeException(nameof(width), "Atlas dimensions must be positive.");
 
         Width = width;
         Height = height;
-        _allowRotation = allowRotation;
 
         _usedByImageID = new Dictionary<string, Rectangle>();
         _freeRects.Add(new Rectangle(0, 0, width, height));
@@ -42,7 +38,7 @@ public sealed class GuillotineAtlas : IAtlas
         if (width <= 0 || height <= 0) return false;
         var paddedW = width + Padding * 2;
         var paddedH = height + Padding * 2;
-        return _freeRects.Any(free => Fits(free, paddedW, paddedH) || (_allowRotation && Fits(free, paddedH, paddedW)));
+        return _freeRects.Any(free => Fits(free, paddedW, paddedH));
     }
 
     public bool IsFull()
@@ -103,11 +99,11 @@ public sealed class GuillotineAtlas : IAtlas
 
             var paddedW = image.Width + Padding * 2;
             var paddedH = image.Height + Padding * 2;
-            var (index, placedW, placedH, rotate) = ChoosePlacement(paddedW, paddedH);
+            var index = ChoosePlacement(paddedW, paddedH);
             if (index < 0) return Rectangle.Empty;
 
             var host = _freeRects[index];
-            var placed = new Rectangle(host.X, host.Y, placedW, placedH);
+            var placed = new Rectangle(host.X, host.Y, paddedW, paddedH);
 
             // Perform a guillotine split on the host rectangle.
             SplitFreeRect(index, placed, host);
@@ -128,8 +124,11 @@ public sealed class GuillotineAtlas : IAtlas
             var alternativeLookup = _usedByImageID.GetAlternateLookup<ReadOnlySpan<char>>();
             if (!alternativeLookup.Remove(imageID, out _, out var rect)) return false;
 
-            _usedArea -= rect.Width * rect.Height;
-            AddFreeRect(rect);
+            // Free the padded area AddImage reserved, not just the image.
+            var placed = new Rectangle(rect.X - Padding, rect.Y - Padding, rect.Width + Padding * 2,
+                rect.Height + Padding * 2);
+            _usedArea -= placed.Width * placed.Height;
+            AddFreeRect(placed);
             MergeAndPruneFreeRects();
 
             return true;
@@ -138,45 +137,22 @@ public sealed class GuillotineAtlas : IAtlas
 
     // Placement
 
-    private (int index, int placedW, int placedH, bool rotated) ChoosePlacement(int width, int height)
+    private int ChoosePlacement(int width, int height)
     {
         var bestIndex = -1;
-        var bestRotated = false;
-        int bestW = 0, bestH = 0;
         var bestScore = new PlacementScore(int.MaxValue, int.MaxValue);
 
         for (var index = 0; index < _freeRects.Count; index++)
         {
             var rectangle = _freeRects[index];
-
-            // Try normal orientation
-            PlacementScore score;
-
-            if (Fits(rectangle, width, height))
-            {
-                score = ScorePlacement(rectangle, width, height);
-                if (IsBetter(score, bestScore))
-                {
-                    bestScore = score;
-                    bestIndex = index;
-                    bestRotated = false;
-                    bestW = width;
-                    bestH = height;
-                }
-            }
-
-            // Try rotated if allowed
-            if (!_allowRotation || !Fits(rectangle, height, width)) continue;
-            score = ScorePlacement(rectangle, height, width);
+            if (!Fits(rectangle, width, height)) continue;
+            var score = ScorePlacement(rectangle, width, height);
             if (!IsBetter(score, bestScore)) continue;
             bestScore = score;
             bestIndex = index;
-            bestRotated = true;
-            bestW = height;
-            bestH = width;
         }
 
-        return (bestIndex, bestW, bestH, bestRotated);
+        return bestIndex;
     }
 
     private static PlacementScore ScorePlacement(Rectangle host, int width, int height)
