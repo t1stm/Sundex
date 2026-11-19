@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Compiles version 2.0 .snx.xml documents into C# at build time. Referenced by an app as an
+       analyzer: <ProjectReference Include="…Sundex.Markup.Generator.csproj" OutputItemType="Analyzer"
+       ReferenceOutputAssembly="false"/>, with the documents as AdditionalFiles. -->
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- Analyzer-only packages have no lib/ assets. -->
+    <NoWarn>$(NoWarn);RS2008;NU5128</NoWarn>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PackSundexAnalyzer</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all"/>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="4.14.0" PrivateAssets="all"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="buildTransitive/Sundex.Markup.Generator.props" Pack="true"
+          PackagePath="buildTransitive/Sundex.Markup.Generator.props"/>
+  </ItemGroup>
+
+  <Target Name="PackSundexAnalyzer">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(TargetPath)" PackagePath="analyzers/dotnet/cs/"/>
+      <TfmSpecificPackageFile Include="$(TargetDir)$(TargetName).pdb" PackagePath="analyzers/dotnet/cs/"/>
+    </ItemGroup>
+  </Target>
+
+</Project>

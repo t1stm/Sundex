@@ -1,0 +1,56 @@
+name: Build packages
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      configuration:
+        default: Release
+        type: string
+    secrets:
+      SIXLABORS_LICENSE_KEY:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ inputs.version }}
+      CONFIGURATION: ${{ inputs.configuration }}
+      SIXLABORS_LICENSE_KEY: ${{ secrets.SIXLABORS_LICENSE_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.x
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Build.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+      - name: Build, test and pack
+        run: |
+          dotnet build Sundex.slnx -c "$CONFIGURATION" -p:Version="$VERSION"
+          dotnet test --solution Sundex.slnx -c "$CONFIGURATION" --no-build
+          dotnet pack Sundex.slnx -c "$CONFIGURATION" --no-build -p:Version="$VERSION" -o artifacts
+          test "$(find artifacts -maxdepth 1 -name '*.nupkg' | wc -l)" -eq 10
+          test "$(find artifacts -maxdepth 1 -name '*.snupkg' | wc -l)" -eq 10
+      - name: Install software OpenGL and Xvfb
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libglx-mesa0 libxrandr2 libxinerama1 libxcursor1 libxi6
+      - name: Run the core-only sample from the packages
+        run: build/smoke-core.sh "$VERSION" "$CONFIGURATION"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sundex-packages
+          path: artifacts/
+          if-no-files-found: error

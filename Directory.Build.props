@@ -1,0 +1,22 @@
+<Project>
+  <Import Project="Sundex.Engine/buildTransitive/Sundex.Engine.props"/>
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <Authors>Sundex contributors</Authors>
+    <Description>Sundex graphics, UI and game development libraries for .NET.</Description>
+    <PackageLicenseExpression>Unlicense</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/t1stm/Sundex</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <!-- The stable Sundex packages use OpenTK 5 prereleases until OpenTK 5 ships. -->
+    <NoWarn>$(NoWarn);NU5104</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="/"/>
+  </ItemGroup>
+</Project>

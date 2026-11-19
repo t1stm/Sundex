@@ -1,0 +1,88 @@
+name: Publish NuGet packages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      value: ${{ steps.version.outputs.value }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: version
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = release ]; then
+            version=$(build/version.sh stable)
+          else
+            version=$(build/version.sh)
+          fi
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: version
+    uses: ./.github/workflows/build.yml
+    with:
+      version: ${{ needs.version.outputs.value }}
+    secrets:
+      SIXLABORS_LICENSE_KEY: ${{ secrets.SIXLABORS_LICENSE_KEY }}
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.x
+      - uses: actions/download-artifact@v4
+        with:
+          name: sundex-packages
+          path: artifacts
+      - uses: NuGet/login@v1
+        id: login
+        with:
+          user: t1stm
+      - name: Publish to nuget.org
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: |
+          for package in artifacts/*.nupkg; do
+            dotnet nuget push "$package" --source https://api.nuget.org/v3/index.json \
+              --api-key "$NUGET_API_KEY" --skip-duplicate
+          done
+
+  release-assets:
+    if: github.event_name == 'release'
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: sundex-packages
+          path: artifacts
+      - name: Attach packages to the release
+        run: |
+          existing=$(gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name')
+          for package in artifacts/*.nupkg artifacts/*.snupkg; do
+            if ! grep -Fxq -- "${package##*/}" <<< "$existing"; then
+              gh release upload "$GITHUB_REF_NAME" "$package"
+            fi
+          done

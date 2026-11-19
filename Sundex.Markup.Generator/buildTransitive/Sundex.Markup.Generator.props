@@ -1,0 +1,16 @@
+<Project>
+  <ItemGroup>
+    <CompilerVisibleProperty Include="RootNamespace;SundexMarkupNamespace;SundexMarkupContext"/>
+  </ItemGroup>
+  <Target Name="PrepareSundexMarkup" BeforeTargets="AssignTargetPaths;GenerateMSBuildEditorConfigFile">
+    <PropertyGroup>
+      <SundexMarkupNamespace Condition="'$(SundexMarkupNamespace)' == ''">$(RootNamespace).Markup</SundexMarkupNamespace>
+    </PropertyGroup>
+    <ItemGroup>
+      <AdditionalFiles Include="**/*.snx.xml;**/*.snx.csx;**/*.snx.ss"
+                       Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder);@(AdditionalFiles)"/>
+      <EmbeddedResource Include="**/*.snx.ss"
+                        Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder);@(EmbeddedResource)"/>
+    </ItemGroup>
+  </Target>
+</Project>
