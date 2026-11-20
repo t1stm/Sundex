@@ -1,3 +1,4 @@
+using Sundex.Engine.Renderer;
 using OpenTK.Mathematics;
 using Sundex.Components.Abstractions;
 using Sundex.Components.Abstractions.Values;
@@ -236,7 +237,7 @@ public class LayoutPaddingTests
 
     private class MockRenderable : IRenderable
     {
-        public void Render(Camera camera)
+        public void Render(in RenderContext context)
         {
         }
     }

@@ -3,16 +3,15 @@ using OpenTK.Mathematics;
 
 namespace Sundex.Core.Renderer.Planes.Uniforms;
 
-[StructLayout(LayoutKind.Explicit, Size = 176)]
+[StructLayout(LayoutKind.Explicit, Size = 112)]
 public struct TexturedUniform
 {
     [FieldOffset(0)] public Matrix4 Model;
-    [FieldOffset(64)] public Matrix4 Projection;
-    [FieldOffset(128)] public Vector4 ScaleAndBorderPx;
+    [FieldOffset(64)] public Vector4 ScaleAndBorderPx;
 
     /// <summary>Multiplied over the sampled texel: white draws the texture as-is.</summary>
-    [FieldOffset(144)] public Vector4 Color;
+    [FieldOffset(80)] public Vector4 Color;
 
     /// <summary>The part of the texture drawn: offset x, offset y, width, height, in 0–1.</summary>
-    [FieldOffset(160)] public Vector4 UvRect;
+    [FieldOffset(96)] public Vector4 UvRect;
 }

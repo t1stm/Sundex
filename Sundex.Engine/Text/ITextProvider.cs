@@ -1,4 +1,4 @@
-using Sundex.Engine.Renderer.Cameras;
+using Sundex.Engine.Renderer;
 using Sundex.Engine.Text.Fonts;
 using Sundex.Slug;
 
@@ -19,5 +19,5 @@ public interface ITextProvider
     /// <summary>
     ///     Binds the font's curve and band textures and activates the shader program.
     /// </summary>
-    void BindAndSetUniforms(Camera camera);
+    void Bind(ICommandList commands);
 }

@@ -1,32 +1,25 @@
-using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using Sundex.Engine.Renderer;
 using Sundex.Engine.Renderer.Abstract;
-using Sundex.Engine.Renderer.Cameras;
 using Sundex.Engine.Renderer.Buffers;
-using Sundex.Engine.Renderer.Queues;
 
 namespace Sundex.Engine.Text;
 
 public class TextBuffer : IRenderable, IClippable, IDisposable
 {
-    public readonly GLBuffer<TextCharacter>.WithCPUCache Characters;
+    public readonly GpuBuffer<TextCharacter>.WithCPUCache Characters;
     public readonly ITextProvider TextProvider;
 
     private readonly List<Range> _freeRanges = [];
     private readonly Dictionary<TextSlice, Range> _usedRanges = [];
 
-    private readonly VertexArrayObject _vao = new();
-
     private int _currentOffset;
     private bool _disposing;
 
-    public TextBuffer(ITextProvider provider, DeleteQueue deleteQueue)
+    public TextBuffer(ITextProvider provider)
     {
-        Characters = new GLBuffer<TextCharacter>.WithCPUCache(
-            deleteQueue, BufferTarget.ArrayBuffer);
+        Characters = new GpuBuffer<TextCharacter>.WithCPUCache(BufferUsage.Vertex);
         TextProvider = provider;
-        InitializeVAO(_vao, Characters);
     }
 
     /// <inheritdoc />
@@ -37,27 +30,12 @@ public class TextBuffer : IRenderable, IClippable, IDisposable
         _disposing = true;
         foreach (var (textSlice, _) in _usedRanges) textSlice.Dispose();
 
-        _vao.Dispose();
         Characters.Dispose();
 
         GC.SuppressFinalize(this);
     }
 
-    public void Render(Camera camera)
-    {
-        RenderBuffer(camera);
-    }
-
-    private static void InitializeVAO(VertexArrayObject vao, GLBuffer<TextCharacter>.WithCPUCache characters)
-    {
-        vao.AddBuffer(GLQuad.VBOWithoutUV, new VertexBufferLayout().PushFloat(3));
-
-        var layout = new VertexBufferLayout();
-        TextCharacter.SelfReflectToGL(layout);
-
-        vao.AddBuffer(characters, layout);
-        vao.SetIndexBuffer(GLQuad.EBO);
-    }
+    public void Render(in RenderContext context) => RenderBuffer(context);
 
     public void Resize(int newSize)
     {
@@ -167,23 +145,19 @@ public class TextBuffer : IRenderable, IClippable, IDisposable
         return null;
     }
 
-    public void RenderBuffer(Camera camera, int endIndex = -1)
+    public void RenderBuffer(in RenderContext context, int endIndex = -1)
     {
         if (endIndex < 0)
             endIndex = _currentOffset;
 
-        _vao.Bind();
-        _vao.Update();
-        TextProvider.BindAndSetUniforms(camera);
-
-        GLQuad.DrawInstanced(endIndex);
-
-        if (RenderMarker.Enabled)
-        {
-            Span<char> handle = stackalloc char[11];
-            Characters.Handle.TryFormat(handle, out var written);
-            RenderMarker.Debug("Rendered Text Buffer: ", handle[..written], MarkerType.Hidden);
-        }
+        if (endIndex == 0) return;
+        var commands = context.Commands;
+        TextProvider.Bind(commands);
+        commands.SetVertexBuffer(0, UnitQuad.Positions);
+        commands.SetVertexBuffer(1, Characters);
+        commands.SetIndexBuffer(UnitQuad.Indices);
+        commands.DrawIndexed(UnitQuad.IndexCount, endIndex);
+        RenderMarker.Debug("Rendered Text Buffer", MarkerType.Hidden);
     }
 
     public void Remove(TextSlice textSlice)

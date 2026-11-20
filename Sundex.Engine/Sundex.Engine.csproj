@@ -43,4 +43,8 @@
     <Folder Include="Assets\"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Sundex.Components.Tests"/>
+  </ItemGroup>
+
 </Project>

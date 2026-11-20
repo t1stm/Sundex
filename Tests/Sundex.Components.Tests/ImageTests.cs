@@ -652,13 +652,16 @@ public class ImageTests
     }
 
     [Fact]
-    public void SetTexture_SwapsThePlanesTextureAndQueuesTheOldHandleForDeletion()
+    public void SetTexture_RetiresThePreviousTextureOnReplacement()
     {
         var context = new TestUIContext();
         var image = new Image(context);
 
         var first = new GPUTexture { Width = 8, Height = 8 };
+        using var pixels = new SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>(8, 8);
         image.SetTexture(first);
+        image.SetTexture(first);
+        first.QueueUploadToGPU(pixels.Frames.RootFrame);
         Assert.Same(first, PlaneOf(image).Texture);
 
         var second = new GPUTexture { Width = 4, Height = 4 };
@@ -666,6 +669,7 @@ public class ImageTests
 
         Assert.Same(second, PlaneOf(image).Texture);
         Assert.Same(second, image.Texture);
+        Assert.Throws<ObjectDisposedException>(() => first.QueueUploadToGPU(pixels.Frames.RootFrame));
     }
 
     [Theory]
@@ -713,7 +717,7 @@ public class ImageTests
         }
     }
 
-    private sealed class UnavailableAssets() : AssetProvider(new LoggerConfiguration().CreateLogger(), [], new GLInfo())
+    private sealed class UnavailableAssets() : AssetProvider(new LoggerConfiguration().CreateLogger(), [])
     {
         public override TReturn Load<TReturn, TCreate>(TCreate createInfo) =>
             throw new FileNotFoundException("Test asset unavailable.");

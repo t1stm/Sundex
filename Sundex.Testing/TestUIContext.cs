@@ -27,7 +27,7 @@ public class TestUIContext : UIContext
     public TestUIContext(ILogger logger, Assembly[] assetAssemblies)
     {
         InjectForTesting(
-            new AssetProvider(logger, [.. assetAssemblies, ComponentsAssembly.Assembly], new GLInfo()),
+            new AssetProvider(logger, [.. assetAssemblies, ComponentsAssembly.Assembly]),
             new MockFontProvider(),
             new MockTextProvider());
         Camera = new UICamera(Vector3.Zero, new Vector2i(1920, 1080));

@@ -1,4 +1,3 @@
-using OpenTK.Graphics.OpenGL;
 using Serilog;
 using Sundex.Engine.AssetManagement.Extensions;
 using Sundex.Engine.AssetManagement.Types.Shader;
@@ -26,12 +25,12 @@ public class ShaderPool(ILogger logger, AssetProvider assetProvider)
     ///     with .vert and .frag
     /// </param>
     /// <returns>A shader object loaded from the specified location</returns>
-    public Shader GetOrLoad(string shaderLocation)
+    public Shader GetOrLoad(string shaderLocation, ShaderLayout layout)
     {
-        return GetOrLoad(shaderLocation, provider => new Shader(assetProvider,
+        return GetOrLoad(shaderLocation, provider => new Shader(assetProvider, layout,
             provider.LoadShaders(
-                ShaderInfo.CreateFromUnknownStorage(ShaderType.VertexShader, shaderLocation + ".vert"),
-                ShaderInfo.CreateFromUnknownStorage(ShaderType.FragmentShader, shaderLocation + ".frag")
+                ShaderInfo.CreateFromUnknownStorage(ShaderStage.Vertex, shaderLocation + ".vert"),
+                ShaderInfo.CreateFromUnknownStorage(ShaderStage.Fragment, shaderLocation + ".frag")
             )
         ));
     }

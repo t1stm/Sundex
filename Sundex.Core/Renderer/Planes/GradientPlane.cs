@@ -1,16 +1,11 @@
 using JetBrains.Annotations;
-using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using Sundex.Core.Renderer.Planes.Uniforms;
 using Sundex.Engine.AssetManagement;
-using Sundex.Engine.AssetManagement.Extensions;
-using Sundex.Engine.AssetManagement.Types.Shader;
 using Sundex.Engine.Renderer;
 using Sundex.Engine.Renderer.Abstract;
 using Sundex.Engine.Renderer.Attributes;
 using Sundex.Engine.Renderer.Buffers;
-using Sundex.Engine.Renderer.Cameras;
-using Sundex.Engine.Renderer.Queues;
 using Sundex.Engine.Renderer.Shaders;
 
 namespace Sundex.Core.Renderer.Planes;
@@ -18,18 +13,12 @@ namespace Sundex.Core.Renderer.Planes;
 [PreloadGraphicsContext]
 public class GradientPlane : Renderable, IGamePreloadable, IBorderRadius
 {
-    private static DeleteQueue _deleteQueue = null!;
-    private static Shader _shader = null!;
-
-    private static bool _areVerticesGenerated;
-    private static VertexArrayObject _staticVAO = null!;
-    private static GLBuffer<GradientUniform>? _uniformBuffer;
+    private static Pipeline _pipeline = null!;
 
     private GradientUniform _uniform;
 
     public GradientPlane()
     {
-        if (!_areVerticesGenerated) SetVertices();
         _uniform = new GradientUniform();
     }
 
@@ -59,8 +48,8 @@ public class GradientPlane : Renderable, IGamePreloadable, IBorderRadius
 
     public override Shader Shader
     {
-        get => _shader;
-        set => _shader = value ?? throw new ArgumentNullException(nameof(value));
+        get => _pipeline.Shader;
+        set => _pipeline = CreatePipeline(value ?? throw new ArgumentNullException(nameof(value)));
     }
 
     public float BorderRadius { get; set; }
@@ -68,43 +57,27 @@ public class GradientPlane : Renderable, IGamePreloadable, IBorderRadius
     [UsedImplicitly]
     public static void Preload(AssetProvider assetProvider)
     {
-        _deleteQueue = assetProvider.DeleteQueue;
-        _shader = assetProvider.ShaderPool.GetOrLoad("Assets/Shaders/GradientPlane", provider =>
-            new Shader(provider, provider.LoadShaders(
-                ShaderInfo.CreateFromUnknownStorage(ShaderType.VertexShader,
-                    "Assets/Shaders/Planes/Gradient/gradient.vert"),
-                ShaderInfo.CreateFromUnknownStorage(ShaderType.FragmentShader,
-                    "Assets/Shaders/Planes/Gradient/gradient.frag")))
-        );
+        var layout = new ShaderLayout(ShaderLayout.View, ShaderLayout.Draw);
+        _pipeline = CreatePipeline(assetProvider.ShaderPool.GetOrLoad("Assets/Shaders/Planes/Gradient/gradient", layout));
     }
 
-    private static void SetVertices()
+    private static Pipeline CreatePipeline(Shader shader) =>
+        new(new PipelineDescription(shader, [new VertexBufferLayout().PushFloat(3)]));
+
+    public override void Render(in RenderContext context)
     {
-        _staticVAO = new VertexArrayObject();
-        var layout = new VertexBufferLayout();
-        layout.PushFloat(3); // xyz vertex coords
-
-        _staticVAO.AddBuffer(GLQuad.VBOWithoutUV, layout);
-        _staticVAO.SetIndexBuffer(GLQuad.EBO);
-        _areVerticesGenerated = true;
+        var commands = context.Commands;
+        commands.SetPipeline(_pipeline);
+        commands.SetVertexBuffer(0, UnitQuad.Positions);
+        commands.SetIndexBuffer(UnitQuad.Indices);
+        PushUniforms(commands);
+        commands.DrawIndexed(UnitQuad.IndexCount);
+        base.Render(context);
     }
 
-    public override void Render(Camera camera)
-    {
-        _staticVAO.Bind();
-        _staticVAO.Update();
-
-        Shader.Use();
-        SetShaderUniforms(camera);
-
-        GL.DrawElements(PrimitiveType.Triangles, GLQuad.EBO.Capacity, DrawElementsType.UnsignedInt, 0);
-        base.Render(camera);
-    }
-
-    public override void SetShaderUniforms(Camera camera)
+    private void PushUniforms(ICommandList commands)
     {
         _uniform.Model = Model;
-        _uniform.Projection = camera.GetVPMatrix();
         _uniform.ScaleAndBorderPx = new Vector4(Scale.X, Scale.Y, BorderRadius, 0);
         _uniform.GradientType = GradientType;
         _uniform.GradientStopCount = Math.Min(GradientColors.Count, 8);
@@ -153,10 +126,6 @@ public class GradientPlane : Renderable, IGamePreloadable, IBorderRadius
             }
         }
 
-        Span<GradientUniform> span = [_uniform];
-
-        _uniformBuffer ??= new GLBuffer<GradientUniform>(_deleteQueue, BufferTarget.UniformBuffer);
-        _uniformBuffer.Dangerous_SetBufferData(span);
-        GL.BindBufferBase(BufferTarget.UniformBuffer, 0, _uniformBuffer.Handle);
+        commands.PushUniforms(1, _uniform);
     }
 }

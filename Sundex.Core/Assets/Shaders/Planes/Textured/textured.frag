@@ -7,9 +7,8 @@ in vec2 vUV;
 
 uniform sampler2D uTexture;
 
-layout (std140) uniform Data {
+layout (std140) uniform Draw {
     mat4 u_Model;
-    mat4 u_Projection;
     vec4 u_ScaleAndBorderPx;
     vec4 u_Color;
     vec4 u_UvRect;

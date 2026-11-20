@@ -1,15 +1,14 @@
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
-using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using Sundex.Engine.AssetManagement;
+using Sundex.Engine.Renderer;
 using Sundex.Engine.Renderer.Abstract;
 using Sundex.Engine.Renderer.Attributes;
 using Sundex.Engine.Renderer.Cameras;
 using Sundex.Engine.Renderer.Debug;
-using Sundex.Engine.Renderer.Queues;
 using Sundex.Engine.Text;
 using Sundex.Engine.Text.Fonts;
 using Sundex.Reactive;
@@ -102,7 +101,6 @@ public class UIContext : IGamePreloadable
 
     /// <summary>The shared provider for a bundled font (see <c>FontProvider</c>), created on first request.</summary>
     public ITextProvider GetTextProvider(string fontName) => TextProviders.GetOrAdd(fontName, _createTextProvider);
-    public DeleteQueue DeleteQueue => _assetProvider.DeleteQueue;
 
     public Action<CursorType> RequestCursor { get; set; } = _ => { };
 
@@ -214,10 +212,11 @@ public class UIContext : IGamePreloadable
         _updatingElements.Remove(element);
     }
 
-    public void Render()
+    public void Render(ICommandList commands)
     {
         foreach (var element in _updatingElements) element.Update(this);
 
+        var context = commands.WithCamera(Camera);
         var scissorOn = false;
         var layerIndex = 0;
         foreach (var queue in CollectionsMarshal.AsSpan(LayeredRenderQueue))
@@ -247,21 +246,20 @@ public class UIContext : IGamePreloadable
                 {
                     if (clip.Z <= clip.X || clip.W <= clip.Y) continue;
 
-                    if (!scissorOn) GL.Enable(EnableCap.ScissorTest);
                     scissorOn = true;
-                    // GL.Scissor takes physical framebuffer pixels; clip/Camera are logical UI units, so
-                    // scale by PixelScale. Origin is bottom-left; UI rects are top-left based.
-                    GL.Scissor((int)(clip.X * PixelScale.X), (int)((Camera.Height - clip.W) * PixelScale.Y),
-                        Math.Max(0, (int)((clip.Z - clip.X) * PixelScale.X)),
-                        Math.Max(0, (int)((clip.W - clip.Y) * PixelScale.Y)));
+                    var left = (int)(clip.X * PixelScale.X);
+                    var top = (int)(clip.Y * PixelScale.Y);
+                    var width = (int)((clip.Z - clip.X) * PixelScale.X);
+                    var height = (int)((clip.W - clip.Y) * PixelScale.Y);
+                    commands.SetScissor(new Box2i(left, top, left + width, top + height));
                 }
                 else if (scissorOn)
                 {
-                    GL.Disable(EnableCap.ScissorTest);
+                    commands.SetScissor(null);
                     scissorOn = false;
                 }
 
-                renderable.Render(Camera);
+                renderable.Render(context);
                 count++;
             }
 
@@ -270,7 +268,7 @@ public class UIContext : IGamePreloadable
                     MarkerType.Hidden);
         }
 
-        if (scissorOn) GL.Disable(EnableCap.ScissorTest);
+        if (scissorOn) commands.SetScissor(null);
     }
 
     #region Pointer routing / focus

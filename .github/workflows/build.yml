@@ -36,6 +36,11 @@ jobs:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Build.props') }}
           restore-keys: ${{ runner.os }}-nuget-
+      - name: Check OpenGL backend boundary
+        run: |
+          if git grep -n -F 'OpenTK.Graphics.OpenGL' -- '*.cs' ':(exclude)Sundex.Engine/Renderer/OpenGL/**'; then
+            exit 1
+          fi
       - name: Build, test and pack
         run: |
           dotnet build Sundex.slnx -c "$CONFIGURATION" -p:Version="$VERSION"

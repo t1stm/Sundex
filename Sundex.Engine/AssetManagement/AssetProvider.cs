@@ -4,7 +4,6 @@ using Serilog;
 using Sundex.Engine.AssetManagement.Abstract.Loading;
 using Sundex.Engine.AssetManagement.Abstract.Metadata;
 using Sundex.Engine.AssetManagement.Helpers;
-using Sundex.Engine.Renderer.Queues;
 using Sundex.Engine.Threading;
 using Sundex.Reactive;
 
@@ -12,12 +11,11 @@ namespace Sundex.Engine.AssetManagement;
 
 public class AssetProvider : IAssetProvider
 {
-    public AssetProvider(ILogger logger, Assembly[] assetAssemblies, GLInfo glInfo)
+    public AssetProvider(ILogger logger, Assembly[] assetAssemblies)
     {
         Logger = logger.ForContext<AssetProvider>();
         AssetAssemblies = DiscoverAssetAssemblies(assetAssemblies);
         SourceRoots = SundexDevelopment.Enabled ? ReadSourceRoots(AssetAssemblies) : [];
-        GLInfo = glInfo;
         ShaderPool = new ShaderPool(logger, this);
         CacheProvider = new CacheProvider(this);
         ThreadRunner = new ThreadRunner(logger);
@@ -68,9 +66,7 @@ public class AssetProvider : IAssetProvider
     /// </summary>
     public string[] SourceRoots { get; }
     public ShaderPool ShaderPool { get; }
-    public DeleteQueue DeleteQueue { get; } = new();
     public CacheProvider CacheProvider { get; }
-    public GLInfo GLInfo { get; }
 
     /// <summary>
     ///     Runs work off the render thread with its exceptions still surfaced (see
@@ -209,12 +205,11 @@ public class AssetProvider : IAssetProvider
     }
 
     /// <summary>
-    ///     Performs maintenance tasks like uploading shaders and executing deletes.
+    ///     Loads queued shader sources and saves queued cache entries.
     /// </summary>
     public void Update()
     {
         ShaderPool.UploadShadersToPreload();
-        DeleteQueue.ExecuteDeletes();
         CacheProvider.SaveQueuedAssets();
     }
 }

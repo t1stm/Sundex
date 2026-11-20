@@ -2,7 +2,6 @@ using System.Reflection;
 using Sundex.Engine.AssetManagement.Abstract.Loading;
 using Sundex.Engine.AssetManagement.Abstract.Metadata;
 using Sundex.Engine.AssetManagement.Helpers;
-using Sundex.Engine.Renderer.Queues;
 using Sundex.Engine.Threading;
 
 namespace Sundex.Engine.AssetManagement;
@@ -17,9 +16,7 @@ public interface IAssetProvider
     /// <summary>Project directories to resolve assets from before the assembly manifest; Debug only.</summary>
     string[] SourceRoots { get; }
     ShaderPool ShaderPool { get; }
-    DeleteQueue DeleteQueue { get; }
     CacheProvider CacheProvider { get; }
-    GLInfo GLInfo { get; }
     ThreadRunner ThreadRunner { get; }
 
     /// <summary>Checks if an asset can be loaded using the specified create info.</summary>
@@ -42,6 +39,6 @@ public interface IAssetProvider
     TMetadata Metadata<TMetadata, TCreate>(TCreate createInfo)
         where TMetadata : IAssetMetadata<TMetadata, TCreate>, allows ref struct;
 
-    /// <summary>Performs maintenance tasks like uploading shaders and executing deletes.</summary>
+    /// <summary>Performs maintenance tasks like loading queued shaders.</summary>
     void Update();
 }

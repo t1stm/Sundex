@@ -1,5 +1,9 @@
 #version 330 core
 
+layout (std140) uniform View {
+    mat4 ViewProjection;
+};
+
 layout (location = 0) in vec3 aPosition;
 layout (location = 1) in vec3 aTranslateXYZ;
 layout (location = 2) in vec2 aScale;
@@ -10,7 +14,6 @@ layout (location = 5) in uint aGlyphIndex; // TextCharacter.Glyph
 #define kLogGlyphTextureWidth 12
 #define kTexelsPerGlyph 3 // SlugFontData.TexelsPerGlyph
 
-uniform mat4 uVPMatrix;
 // SlugFontData.Glyphs: per glyph, its em rect, banding and glyph data, one texel each.
 uniform sampler2D uGlyphs;
 // Em-space sample position (Y-up, origin on the baseline), what the Slug pixel shader
@@ -18,7 +21,7 @@ uniform sampler2D uGlyphs;
 out vec2 vEmCoord;
 out vec4 vColor;
 // UI-space position of this fragment, and the box it is confined to. The glyph's
-// transform is applied before uVPMatrix, so this stage already holds the same
+// transform is applied before ViewProjection, so this stage already holds the same
 // absolute UI units ClipRect is written in - no viewport size or gl_FragCoord
 // unflipping needed downstream. flat: one value per instance, never interpolated.
 out vec2 vUIPosition;
@@ -42,7 +45,7 @@ void main() {
     );
 
     vec4 ui_coords = transformMatrix * vec4(aPosition.xyz, 1.0);
-    vec4 final_coords = uVPMatrix * ui_coords;
+    vec4 final_coords = ViewProjection * ui_coords;
 
     vUIPosition = ui_coords.xy;
     vClipRect = aClipRect;

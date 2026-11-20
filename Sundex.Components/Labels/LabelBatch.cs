@@ -1,7 +1,7 @@
 using OpenTK.Mathematics;
 using Sundex.Components.Abstractions;
 using Sundex.Engine.Renderer.Abstract;
-using Sundex.Engine.Renderer.Cameras;
+using Sundex.Engine.Renderer;
 using Sundex.Engine.Text;
 
 namespace Sundex.Components.Labels;
@@ -33,7 +33,7 @@ public sealed class LabelBatch : IRenderable, IClippable
     /// <param name="sliceCapacity">Characters a slot holds before it needs a bigger slice.</param>
     public LabelBatch(UIContext context, int count, float fontSize = FontSize, int sliceCapacity = 8)
     {
-        _buffer = new TextBuffer(context.TextProvider, context.DeleteQueue);
+        _buffer = new TextBuffer(context.TextProvider);
         _fontSize = fontSize;
         _sliceCapacity = sliceCapacity;
         EnsureCount(count);
@@ -43,9 +43,9 @@ public sealed class LabelBatch : IRenderable, IClippable
 
     public Vector4i? ClipRect { get; set; }
 
-    public void Render(Camera camera)
+    public void Render(in RenderContext context)
     {
-        _buffer.RenderBuffer(camera);
+        _buffer.RenderBuffer(context);
     }
 
     /// <summary>Appends slots until the pool holds at least <paramref name="count" /> of them.</summary>

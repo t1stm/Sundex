@@ -1,3 +1,4 @@
+using Sundex.Engine.Renderer;
 using OpenTK.Mathematics;
 
 namespace Sundex.Engine.Scenes.Arguments;
@@ -11,5 +12,5 @@ namespace Sundex.Engine.Scenes.Arguments;
 public ref struct InitArguments
 {
     public Vector2i StartingResolution;
-    public GLInfo GLInfo;
+    public DeviceCapabilities Capabilities;
 }

@@ -1,13 +1,16 @@
 #version 330 core
 
+layout (std140) uniform View {
+    mat4 ViewProjection;
+};
+
 layout (location = 0) in vec3 aPosition;
 
 out vec2 vLocalPos;
 out vec2 vUv;
 
-layout (std140) uniform Data {
+layout (std140) uniform Draw {
     mat4 u_Model;
-    mat4 u_Projection;
     vec4 u_Color;
     vec4 u_BorderColor;
     vec4 u_Border;
@@ -20,5 +23,5 @@ layout (std140) uniform Data {
 void main() {
     vLocalPos = (aPosition.xy - 0.5) * u_ScaleRadiusLod.xy;
     vUv = aPosition.xy;
-    gl_Position = u_Projection * u_Model * vec4(aPosition, 1.0);
+    gl_Position = ViewProjection * u_Model * vec4(aPosition, 1.0);
 }

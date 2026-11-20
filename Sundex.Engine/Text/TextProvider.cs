@@ -1,11 +1,10 @@
 using System.Runtime.InteropServices;
-using OpenTK.Graphics.OpenGL;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Sundex.Engine.AssetManagement;
 using Sundex.Engine.Renderer.Abstract;
 using Sundex.Engine.Renderer.Attributes;
-using Sundex.Engine.Renderer.Cameras;
+using Sundex.Engine.Renderer;
 using Sundex.Engine.Renderer.Shaders;
 using Sundex.Engine.Renderer.Textures;
 using Sundex.Engine.Text.Fonts;
@@ -17,7 +16,7 @@ namespace Sundex.Engine.Text;
 public class TextProvider(IAssetProvider provider, IFontProvider fontProvider, string fontName)
     : IGamePreloadable, ITextProvider
 {
-    private static Shader _shader = null!;
+    private static Pipeline _pipeline = null!;
 
     private readonly GlyphProvider _glyphProvider = new(fontProvider, fontName);
 
@@ -31,18 +30,19 @@ public class TextProvider(IAssetProvider provider, IFontProvider fontProvider, s
 
     public static void Preload(AssetProvider assetProvider)
     {
-        _shader = assetProvider.ShaderPool.GetOrLoad("Assets/Shaders/Text/Batched");
+        var layout = new ShaderLayout(ShaderLayout.View,
+            new ShaderBinding("uCurves", 2, ShaderBindingType.Texture),
+            new ShaderBinding("uBands", 3, ShaderBindingType.Texture),
+            new ShaderBinding("uGlyphs", 4, ShaderBindingType.Texture));
+        var shader = assetProvider.ShaderPool.GetOrLoad("Assets/Shaders/Text/Batched", layout);
+        var glyphs = new VertexBufferLayout(VertexStepRate.Instance);
+        TextCharacter.DescribeLayout(glyphs);
+        _pipeline = new Pipeline(new PipelineDescription(shader, [new VertexBufferLayout().PushFloat(3), glyphs]));
     }
 
     public IGlyphProvider GlyphProvider => _glyphProvider;
 
-    /// <summary>
-    ///     Binds the curve texture to unit 0, the band texture to unit 1 and the glyph table to
-    ///     unit 2, and activates the shader program. Unit 0 is left active, since everything else
-    ///     binds there.
-    /// </summary>
-    /// <param name="camera">The camera that contains the VP matrix to use in the shader.</param>
-    public void BindAndSetUniforms(Camera camera)
+    public void Bind(ICommandList commands)
     {
         if (_curves is null || _bands is null || _glyphs is null)
         {
@@ -52,20 +52,11 @@ public class TextProvider(IAssetProvider provider, IFontProvider fontProvider, s
             _glyphs = CreateTexture(data.Glyphs, data.GlyphRows);
         }
 
-        GL.ActiveTexture(TextureUnit.Texture2);
-        _glyphs.Bind();
-        GL.ActiveTexture(TextureUnit.Texture1);
-        _bands.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
-        _curves.Bind();
-
-        _shader.Use();
-        _shader.SetUniform("uVPMatrix", camera.GetVPMatrix());
-        _shader.SetUniform("uCurves", 0);
-        _shader.SetUniform("uBands", 1);
-        _shader.SetUniform("uGlyphs", 2);
-
-        RenderMarker.Debug("Bound Slug Textures and Set Uniforms: ", fontName, MarkerType.Hidden);
+        commands.SetPipeline(_pipeline);
+        commands.SetTexture(2, _curves, Sampler.NearestClamp);
+        commands.SetTexture(3, _bands, Sampler.NearestClamp);
+        commands.SetTexture(4, _glyphs, Sampler.NearestClamp);
+        RenderMarker.Debug("Bound Slug Textures: ", fontName, MarkerType.Hidden);
     }
 
     private static GPUTexture CreateTexture(float[] texels, int rows)
@@ -74,7 +65,7 @@ public class TextProvider(IAssetProvider provider, IFontProvider fontProvider, s
         {
             Width = SlugFontData.TextureWidth,
             Height = rows,
-            InternalFormat = InternalFormat.Rgba32f,
+            Format = TextureFormat.Rgba32Float,
             MipmapMode = MipmapMode.Disabled
         };
 

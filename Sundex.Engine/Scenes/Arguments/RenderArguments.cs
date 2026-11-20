@@ -1,3 +1,4 @@
+using Sundex.Engine.Renderer;
 namespace Sundex.Engine.Scenes.Arguments;
 
 /// <summary>
@@ -8,6 +9,8 @@ namespace Sundex.Engine.Scenes.Arguments;
 /// </remarks>
 public ref struct RenderArguments
 {
+    public ICommandList Commands;
+
     /// <summary>
     ///     Time elapsed since render call.
     /// </summary>

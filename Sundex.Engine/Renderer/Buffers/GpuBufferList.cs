@@ -1,14 +1,10 @@
 using System.Collections;
-using OpenTK.Graphics.OpenGL;
-using Sundex.Engine.Renderer.Abstract;
-using Sundex.Engine.Renderer.Enums;
-using Sundex.Engine.Renderer.Queues;
 
 namespace Sundex.Engine.Renderer.Buffers;
 
 /// <summary>
 ///     Represents a generic GPU buffer that behaves like a list, providing dynamic array functionality
-///     with OpenGL buffer management. This class combines the performance of GPU buffers with the
+///     with GPU buffer management. This class combines the performance of GPU buffers with the
 ///     convenience of standard .NET collections.
 /// </summary>
 /// <typeparam name="TDataType">The unmanaged data type stored in the buffer (e.g., vertex data, indices)</typeparam>
@@ -17,55 +13,27 @@ namespace Sundex.Engine.Renderer.Buffers;
 ///     for efficient updates. It automatically manages buffer capacity expansion and provides full
 ///     <see cref="IList&lt;TDataType&gt;" /> compatibility for seamless integration with existing code.
 /// </remarks>
-public class GLBufferList<TDataType>(DeleteQueue deleteQueue)
-    : IGPUBuffer<TDataType>, IList<TDataType> where TDataType : unmanaged
+public class GpuBufferList<TDataType>(int capacity = 0)
+    : IDisposable, IList<TDataType> where TDataType : unmanaged
 {
-    public GLBufferList(DeleteQueue deleteQueue, int capacity) : this(deleteQueue)
-    {
-        Buffer.ResizeCPUBuffer(capacity);
-    }
-
-    protected GLBuffer<TDataType>.WithCPUCache Buffer { get; } = new(deleteQueue, BufferTarget.ArrayBuffer);
+    public GpuBuffer<TDataType>.WithCPUCache Buffer { get; } = CreateBuffer(capacity);
     protected Dictionary<int, TrackedBufferReference<TDataType>> TrackedBufferReferences { get; set; } = [];
 
-    /// <summary>
-    ///     Gets the current creation state of the underlying OpenGL buffer.
-    /// </summary>
-    public BufferState BufferState => Buffer.BufferState;
-
-    /// <summary>
-    ///     Gets the OpenGL handle for the underlying buffer object.
-    /// </summary>
-    public int Handle => Buffer.Handle;
-
-    /// <summary>
-    ///     Gets the current capacity of the buffer (total allocated space).
-    /// </summary>
     public int Capacity => Buffer.Capacity;
 
-    /// <summary>
-    ///     Binds this buffer as the current OpenGL array buffer.
-    /// </summary>
-    public void Bind()
+    public void SetData(ReadOnlySpan<TDataType> data)
     {
-        Buffer.Bind();
+        Buffer.SetData(data);
+        Count = data.Length;
+        foreach (var index in TrackedBufferReferences.Keys.Where(index => index >= Count).ToArray())
+            TrackedBufferReferences.Remove(index);
     }
 
-    /// <summary>
-    ///     Updates the GPU buffer with any pending CPU-side changes.
-    /// </summary>
-    public void Update()
+    private static GpuBuffer<TDataType>.WithCPUCache CreateBuffer(int capacity)
     {
-        Buffer.Update();
-    }
-
-    /// <summary>
-    ///     Sets the entire buffer data, replacing all existing content.
-    /// </summary>
-    /// <param name="data">The data to copy into the buffer</param>
-    public void Dangerous_SetBufferData(ReadOnlySpan<TDataType> data)
-    {
-        Buffer.Dangerous_SetBufferData(data);
+        var buffer = new GpuBuffer<TDataType>.WithCPUCache(BufferUsage.Vertex);
+        buffer.ResizeCPUBuffer(capacity);
+        return buffer;
     }
 
     /// <summary>
@@ -80,7 +48,7 @@ public class GLBufferList<TDataType>(DeleteQueue deleteQueue)
     }
 
     /// <summary>
-    ///     Releases all resources used by the buffer list, including the underlying OpenGL buffer.
+    ///     Releases all resources used by the buffer list, including the underlying GPU buffer.
     /// </summary>
     public void Dispose()
     {

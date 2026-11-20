@@ -1,0 +1,523 @@
+{
+  "visualizer": {
+    "debugBaseline": [
+      {
+        "cpuCount": 600,
+        "gpuCount": 600,
+        "cpuP50": 0.7481,
+        "cpuP95": 0.9592,
+        "renderP50": 0.6732,
+        "renderP95": 0.894,
+        "gpuP50": 0.0772,
+        "gpuP95": 0.09124,
+        "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+      }
+    ],
+    "debugPhase1": [
+      {
+        "cpuCount": 600,
+        "gpuCount": 600,
+        "cpuP50": 0.69,
+        "cpuP95": 0.9242,
+        "renderP50": 0.6204,
+        "renderP95": 0.8503,
+        "gpuP50": 0.07344,
+        "gpuP95": 0.08948,
+        "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+      }
+    ],
+    "prereleaseCheck": {
+      "cpuCount": 600,
+      "gpuCount": 600,
+      "cpuP50": 0.5959,
+      "cpuP95": 0.7825,
+      "renderP50": 0.5417,
+      "renderP95": 0.7284,
+      "gpuP50": 0.07536,
+      "gpuP95": 0.09056,
+      "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+    }
+  },
+  "editor": {
+    "debugBaseline": [
+      {
+        "cpuCount": 600,
+        "gpuCount": 600,
+        "cpuP50": 0.9621,
+        "cpuP95": 1.0839,
+        "renderP50": 0.4009,
+        "renderP95": 0.4527,
+        "gpuP50": 0.23112,
+        "gpuP95": 0.24212,
+        "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+      }
+    ],
+    "debugPhase1": [
+      {
+        "cpuCount": 600,
+        "gpuCount": 600,
+        "cpuP50": 0.8792,
+        "cpuP95": 0.9936,
+        "renderP50": 0.3382,
+        "renderP95": 0.3788,
+        "gpuP50": 0.22644,
+        "gpuP95": 0.23104,
+        "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+      }
+    ],
+    "prereleaseCheck": {
+      "cpuCount": 600,
+      "gpuCount": 600,
+      "cpuP50": 0.5873,
+      "cpuP95": 0.701,
+      "renderP50": 0.3039,
+      "renderP95": 0.3456,
+      "gpuP50": 0.23088,
+      "gpuP95": 0.23568,
+      "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+    }
+  },
+  "home": {
+    "debugBaseline": [
+      {
+        "cpuCount": 600,
+        "gpuCount": 600,
+        "cpuP50": 0.5214,
+        "cpuP95": 0.6006,
+        "renderP50": 0.3471,
+        "renderP95": 0.3952,
+        "gpuP50": 0.1166,
+        "gpuP95": 0.1342,
+        "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+      },
+      {
+        "cpuCount": 600,
+        "gpuCount": 600,
+        "cpuP50": 0.5193,
+        "cpuP95": 0.5882,
+        "renderP50": 0.347,
+        "renderP95": 0.3925,
+        "gpuP50": 0.11708,
+        "gpuP95": 0.16488,
+        "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+      },
+      {
+        "cpuCount": 600,
+        "gpuCount": 600,
+        "cpuP50": 0.5253,
+        "cpuP95": 0.5934,
+        "renderP50": 0.3496,
+        "renderP95": 0.3995,
+        "gpuP50": 0.1046,
+        "gpuP95": 0.15288,
+        "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+      },
+      {
+        "cpuCount": 600,
+        "gpuCount": 600,
+        "cpuP50": 0.5272,
+        "cpuP95": 0.5941,
+        "renderP50": 0.3526,
+        "renderP95": 0.3962,
+        "gpuP50": 0.10436,
+        "gpuP95": 0.11708,
+        "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+      }
+    ],
+    "debugPhase1": [
+      {
+        "cpuCount": 600,
+        "gpuCount": 600,
+        "cpuP50": 0.4875,
+        "cpuP95": 0.5561,
+        "renderP50": 0.3167,
+        "renderP95": 0.3592,
+        "gpuP50": 0.10376,
+        "gpuP95": 0.15424,
+        "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+      },
+      {
+        "cpuCount": 600,
+        "gpuCount": 600,
+        "cpuP50": 0.486,
+        "cpuP95": 0.5682,
+        "renderP50": 0.3158,
+        "renderP95": 0.3632,
+        "gpuP50": 0.10372,
+        "gpuP95": 0.15324,
+        "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+      }
+    ],
+    "prereleaseCheck": {
+      "cpuCount": 600,
+      "gpuCount": 600,
+      "cpuP50": 0.4014,
+      "cpuP95": 0.4616,
+      "renderP50": 0.2884,
+      "renderP95": 0.3286,
+      "gpuP50": 0.11664,
+      "gpuP95": 0.16512,
+      "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+    }
+  },
+  "player": {
+    "debugBaseline": [
+      {
+        "cpuCount": 600,
+        "gpuCount": 600,
+        "cpuP50": 0.5338,
+        "cpuP95": 0.6227,
+        "renderP50": 0.3621,
+        "renderP95": 0.4157,
+        "gpuP50": 0.10924,
+        "gpuP95": 0.12168,
+        "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+      },
+      {
+        "cpuCount": 600,
+        "gpuCount": 600,
+        "cpuP50": 0.5402,
+        "cpuP95": 0.6063,
+        "renderP50": 0.3649,
+        "renderP95": 0.4112,
+        "gpuP50": 0.12172,
+        "gpuP95": 0.13568,
+        "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+      },
+      {
+        "cpuCount": 600,
+        "gpuCount": 600,
+        "cpuP50": 0.5292,
+        "cpuP95": 0.6041,
+        "renderP50": 0.3608,
+        "renderP95": 0.4029,
+        "gpuP50": 0.10944,
+        "gpuP95": 0.12196,
+        "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+      },
+      {
+        "cpuCount": 600,
+        "gpuCount": 600,
+        "cpuP50": 0.5331,
+        "cpuP95": 0.6141,
+        "renderP50": 0.3618,
+        "renderP95": 0.4097,
+        "gpuP50": 0.10932,
+        "gpuP95": 0.12144,
+        "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+      }
+    ],
+    "debugPhase1": [
+      {
+        "cpuCount": 600,
+        "gpuCount": 600,
+        "cpuP50": 0.4923,
+        "cpuP95": 0.5638,
+        "renderP50": 0.3272,
+        "renderP95": 0.3744,
+        "gpuP50": 0.10824,
+        "gpuP95": 0.12324,
+        "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+      },
+      {
+        "cpuCount": 600,
+        "gpuCount": 600,
+        "cpuP50": 0.4942,
+        "cpuP95": 0.5608,
+        "renderP50": 0.3265,
+        "renderP95": 0.3675,
+        "gpuP50": 0.10844,
+        "gpuP95": 0.12072,
+        "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+      }
+    ],
+    "prereleaseCheck": {
+      "cpuCount": 600,
+      "gpuCount": 600,
+      "cpuP50": 0.4225,
+      "cpuP95": 0.4784,
+      "renderP50": 0.3016,
+      "renderP95": 0.3408,
+      "gpuP50": 0.10836,
+      "gpuP95": 0.12112,
+      "renderer": "AMD Radeon RX 9070 XT (radeonsi, gfx1201, ACO, DRM 3.64, 7.3.3-1-cachyos)"
+    }
+  },
+  "phase2": {
+    "note": "Same build of 1.0.0 with a temporary timing hook. direct: window only, as in phase 1. offscreen: frame target plus copy to the window. hazards: offscreen with the hazard check on.",
+    "runs": {
+      "editor": {
+        "direct": [
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.6342,
+            "cpuP95": 0.7608,
+            "gpuP50": 0.22832,
+            "gpuP95": 0.2456,
+            "direct": true,
+            "hazards": false
+          },
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.6324,
+            "cpuP95": 0.7586,
+            "gpuP50": 0.2278,
+            "gpuP95": 0.2434,
+            "direct": true,
+            "hazards": false
+          }
+        ],
+        "hazards": [
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.6426,
+            "cpuP95": 0.7655,
+            "gpuP50": 0.23452,
+            "gpuP95": 0.24704,
+            "direct": false,
+            "hazards": true
+          },
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.6316,
+            "cpuP95": 0.7419,
+            "gpuP50": 0.23336,
+            "gpuP95": 0.23872,
+            "direct": false,
+            "hazards": true
+          }
+        ],
+        "offscreen": [
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.6199,
+            "cpuP95": 0.7206,
+            "gpuP50": 0.2354,
+            "gpuP95": 0.24604,
+            "direct": false,
+            "hazards": false
+          },
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.6371,
+            "cpuP95": 0.7496,
+            "gpuP50": 0.23528,
+            "gpuP95": 0.24716,
+            "direct": false,
+            "hazards": false
+          }
+        ]
+      },
+      "home": {
+        "direct": [
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.4253,
+            "cpuP95": 0.4884,
+            "gpuP50": 0.09892,
+            "gpuP95": 0.11104,
+            "direct": true,
+            "hazards": false
+          },
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.4185,
+            "cpuP95": 0.4865,
+            "gpuP50": 0.09948,
+            "gpuP95": 0.11192,
+            "direct": true,
+            "hazards": false
+          }
+        ],
+        "hazards": [
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.4351,
+            "cpuP95": 0.5177,
+            "gpuP50": 0.10264,
+            "gpuP95": 0.11296,
+            "direct": false,
+            "hazards": true
+          },
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.4276,
+            "cpuP95": 0.5001,
+            "gpuP50": 0.10428,
+            "gpuP95": 0.11424,
+            "direct": false,
+            "hazards": true
+          }
+        ],
+        "offscreen": [
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.4288,
+            "cpuP95": 0.5036,
+            "gpuP50": 0.10508,
+            "gpuP95": 0.11516,
+            "direct": false,
+            "hazards": false
+          },
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.4264,
+            "cpuP95": 0.5008,
+            "gpuP50": 0.1032,
+            "gpuP95": 0.11412,
+            "direct": false,
+            "hazards": false
+          }
+        ]
+      },
+      "player": {
+        "direct": [
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.4301,
+            "cpuP95": 0.5077,
+            "gpuP50": 0.10636,
+            "gpuP95": 0.11584,
+            "direct": true,
+            "hazards": false
+          },
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.4361,
+            "cpuP95": 0.5056,
+            "gpuP50": 0.1066,
+            "gpuP95": 0.1156,
+            "direct": true,
+            "hazards": false
+          }
+        ],
+        "hazards": [
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.4373,
+            "cpuP95": 0.5075,
+            "gpuP50": 0.11016,
+            "gpuP95": 0.11728,
+            "direct": false,
+            "hazards": true
+          },
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.449,
+            "cpuP95": 0.5334,
+            "gpuP50": 0.11268,
+            "gpuP95": 0.11864,
+            "direct": false,
+            "hazards": true
+          }
+        ],
+        "offscreen": [
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.4375,
+            "cpuP95": 0.4979,
+            "gpuP50": 0.11104,
+            "gpuP95": 0.11796,
+            "direct": false,
+            "hazards": false
+          },
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.447,
+            "cpuP95": 0.5179,
+            "gpuP50": 0.11152,
+            "gpuP95": 0.11776,
+            "direct": false,
+            "hazards": false
+          }
+        ]
+      },
+      "visualizer": {
+        "direct": [
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.5139,
+            "cpuP95": 0.644,
+            "gpuP50": 0.076,
+            "gpuP95": 0.0898,
+            "direct": true,
+            "hazards": false
+          },
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.52,
+            "cpuP95": 0.6415,
+            "gpuP50": 0.07656,
+            "gpuP95": 0.09176,
+            "direct": true,
+            "hazards": false
+          }
+        ],
+        "hazards": [
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.5291,
+            "cpuP95": 0.6822,
+            "gpuP50": 0.08084,
+            "gpuP95": 0.09336,
+            "direct": false,
+            "hazards": true
+          },
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.5326,
+            "cpuP95": 0.6533,
+            "gpuP50": 0.08136,
+            "gpuP95": 0.09424,
+            "direct": false,
+            "hazards": true
+          }
+        ],
+        "offscreen": [
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.5392,
+            "cpuP95": 0.7159,
+            "gpuP50": 0.0806,
+            "gpuP95": 0.09028,
+            "direct": false,
+            "hazards": false
+          },
+          {
+            "cpuCount": 600,
+            "gpuCount": 600,
+            "cpuP50": 0.5156,
+            "cpuP95": 0.6593,
+            "gpuP50": 0.08068,
+            "gpuP95": 0.09208,
+            "direct": false,
+            "hazards": false
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 using OpenTK.Mathematics;
 using Sundex.Core.Animations;
-using Sundex.Engine.Renderer.Cameras;
+using Sundex.Engine.Renderer;
 using Sundex.Engine.Renderer.Shaders;
 
 namespace Sundex.Core.Renderer.Planes;
@@ -61,14 +61,9 @@ public class AnimatedPlane<T>(T renderable, Animation animation) : Renderable
         set => Renderable.Translation = value;
     }
 
-    public override void Render(Camera camera)
+    public override void Render(in RenderContext context)
     {
-        Renderable.Render(camera);
-    }
-
-    public override void SetShaderUniforms(Camera camera)
-    {
-        Renderable.SetShaderUniforms(camera);
+        Renderable.Render(context);
     }
 
     public override void SetTranslation(Vector3 translation)

@@ -1,4 +1,3 @@
-using Sundex.Engine.Renderer.Queues;
 using Sundex.Engine.Text;
 using Sundex.Slug;
 using NVector4 = System.Numerics.Vector4;
@@ -25,7 +24,7 @@ public class TextSliceTests
         var provider = new MockTextProvider();
         ((MockGlyphProvider)provider.GlyphProvider).Glyph =
             new SlugGlyph(advance, emRect, banding, glyphData) { Index = 7 };
-        var buffer = new TextBuffer(provider, new DeleteQueue());
+        var buffer = new TextBuffer(provider);
 
         var slice = buffer.GetTextSlice("ab");
         slice.UpdateManually = true;

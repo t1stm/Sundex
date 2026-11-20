@@ -1,7 +1,7 @@
 using OpenTK.Mathematics;
 using Sundex.Core.Animations;
 using Sundex.Engine.Renderer.Abstract;
-using Sundex.Engine.Renderer.Cameras;
+using Sundex.Engine.Renderer;
 using Sundex.Engine.Renderer.Shaders;
 
 namespace Sundex.Core;
@@ -65,12 +65,11 @@ public abstract class Renderable : IRenderable, IPositionable, IClippable
     public virtual Vector3 Scale { get; set; }
 
     /// <summary>
-    ///     Renders a given renderable using the projection matrix from the camera.
+    ///     Renders a given renderable with the current render context.
     /// </summary>
-    /// <param name="camera">The camera you want to use.</param>
-    public virtual void Render(Camera camera)
+    public virtual void Render(in RenderContext context)
     {
-        foreach (var child in Children) child.Render(camera);
+        foreach (var child in Children) child.Render(context);
     }
 
     /// <summary>
@@ -177,15 +176,6 @@ public abstract class Renderable : IRenderable, IPositionable, IClippable
     public virtual void Update()
     {
         // Override if needed.
-    }
-
-    /// <summary>
-    ///     Method that sets the shader's uniforms if overriden.
-    /// </summary>
-    /// <param name="camera">The camera that contains main projection matrix.</param>
-    public virtual void SetShaderUniforms(Camera camera)
-    {
-        // Implement if needed.
     }
 
     /// <summary>

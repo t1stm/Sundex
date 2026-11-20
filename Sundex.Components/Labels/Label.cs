@@ -64,7 +64,7 @@ public class Label : UIElement
         Height = LiteralOrComputable.AutoSize;
         _font = font;
         _raw = text.ToString().AsMemory();
-        TextBuffer = new TextBuffer(ProviderFor(font), context.DeleteQueue);
+        TextBuffer = new TextBuffer(ProviderFor(font));
         TextSlice = TextBuffer.GetTextSlice(text);
         TextSlice.FontSize = FontSizePx.Resolve(ReferenceFontSize);
         Compute(float.MaxValue);
@@ -658,7 +658,7 @@ public class Label : UIElement
         if (drawn) Context.DequeueRender(TextBuffer, Index);
         TextBuffer.Dispose();
 
-        TextBuffer = new TextBuffer(ProviderFor(_font), Context.DeleteQueue) { ClipRect = ClipRect };
+        TextBuffer = new TextBuffer(ProviderFor(_font)) { ClipRect = ClipRect };
         TextSlice = TextBuffer.GetTextSlice(shown);
         TextSlice.FontSize = Size;
         TextSlice.Color = Rendered;

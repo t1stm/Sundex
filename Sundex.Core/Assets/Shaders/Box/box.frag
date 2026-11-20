@@ -10,9 +10,8 @@ in vec2 vUv;
 
 uniform sampler2D uBackdrop;
 
-layout (std140) uniform Data {
+layout (std140) uniform Draw {
     mat4 u_Model;
-    mat4 u_Projection;
     vec4 u_Color;
     vec4 u_BorderColor;
     vec4 u_Border;            // top, right, bottom, left

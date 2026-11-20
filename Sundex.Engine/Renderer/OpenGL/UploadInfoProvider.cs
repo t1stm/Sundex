@@ -1,9 +1,9 @@
 using OpenTK.Graphics.OpenGL;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace Sundex.Engine.Renderer.Textures;
+namespace Sundex.Engine.Renderer.OpenGL;
 
-public static class UploadInfoProvider<TPixel> where TPixel : unmanaged, IPixel, IPixel<TPixel>
+internal static class UploadInfoProvider<TPixel> where TPixel : unmanaged, IPixel, IPixel<TPixel>
 {
     // One instance is kept per TPixel the application uses.
     // ReSharper disable once StaticMemberInGenericType

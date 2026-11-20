@@ -1,17 +1,13 @@
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
-using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using Sundex.Engine.AssetManagement;
-using Sundex.Engine.AssetManagement.Extensions;
-using Sundex.Engine.AssetManagement.Types.Shader;
 using Sundex.Engine.Renderer;
 using Sundex.Engine.Renderer.Abstract;
 using Sundex.Engine.Renderer.Attributes;
 using Sundex.Engine.Renderer.Buffers;
-using Sundex.Engine.Renderer.Cameras;
-using Sundex.Engine.Renderer.Queues;
 using Sundex.Engine.Renderer.Shaders;
+using Sundex.Engine.Renderer.Textures;
 
 namespace Sundex.Core.Renderer.Planes;
 
@@ -23,11 +19,12 @@ namespace Sundex.Core.Renderer.Planes;
 [PreloadGraphicsContext]
 public sealed class BoxPlane : Renderable, IGamePreloadable, IBorderRadius
 {
-    private static DeleteQueue _deleteQueue = null!;
-    private static Shader _shader = null!;
-    private static VertexArrayObject? _vao;
-    private static GLBuffer<Uniform>? _uniforms;
-    private static int _backdropTexture;
+    private const int BackdropStep = 64;
+    private const int MaxBackdrops = 8;
+
+    private static Pipeline _pipeline = null!;
+    // Backdrop copies by size, least recently used first.
+    private static readonly List<GPUTexture> Backdrops = [];
 
     public Vector4 BorderColor;
     public Vector4 BorderWidths;
@@ -42,8 +39,8 @@ public sealed class BoxPlane : Renderable, IGamePreloadable, IBorderRadius
 
     public override Shader Shader
     {
-        get => _shader;
-        set => _shader = value ?? throw new ArgumentNullException(nameof(value));
+        get => _pipeline.Shader;
+        set => _pipeline = CreatePipeline(value ?? throw new ArgumentNullException(nameof(value)));
     }
 
     public override Vector3 Position
@@ -71,99 +68,104 @@ public sealed class BoxPlane : Renderable, IGamePreloadable, IBorderRadius
     [UsedImplicitly]
     public static void Preload(AssetProvider assetProvider)
     {
-        _deleteQueue = assetProvider.DeleteQueue;
-        _shader = assetProvider.ShaderPool.GetOrLoad("Assets/Shaders/Box", provider =>
-            new Shader(provider, provider.LoadShaders(
-                ShaderInfo.CreateFromUnknownStorage(ShaderType.VertexShader, "Assets/Shaders/Box/box.vert"),
-                ShaderInfo.CreateFromUnknownStorage(ShaderType.FragmentShader, "Assets/Shaders/Box/box.frag"))));
+        var layout = new ShaderLayout(ShaderLayout.View, ShaderLayout.Draw,
+            new ShaderBinding("uBackdrop", 2, ShaderBindingType.Texture));
+        _pipeline = CreatePipeline(assetProvider.ShaderPool.GetOrLoad("Assets/Shaders/Box/box", layout));
+        foreach (var backdrop in Backdrops) backdrop.Dispose();
+        Backdrops.Clear();
     }
 
-    public override void Render(Camera camera)
+    private static Pipeline CreatePipeline(Shader shader) =>
+        new(new PipelineDescription(shader, [new VertexBufferLayout().PushFloat(3)]));
+
+    public override void Render(in RenderContext context)
     {
-        if (_vao == null)
+        var commands = context.Commands;
+        commands.SetPipeline(_pipeline);
+        commands.SetVertexBuffer(0, UnitQuad.Positions);
+        commands.SetIndexBuffer(UnitQuad.Indices);
+
+        var uvRect = BackdropLod >= 0 ? CopyBackdrop(commands) : new Vector4(0, 0, 1, 1);
+        var uniforms = new Uniform
         {
-            _vao = new VertexArrayObject();
-            var layout = new VertexBufferLayout();
-            layout.PushFloat(3);
-            _vao.AddBuffer(GLQuad.VBOWithoutUV, layout);
-            _vao.SetIndexBuffer(GLQuad.EBO);
-        }
-
-        var uvRect = new Vector4(0, 0, 1, 1);
-        if (BackdropLod >= 0) uvRect = CopyBackdrop();
-
-        _vao.Bind();
-        _vao.Update();
-        Shader.Use();
-
-        Span<Uniform> data =
-        [
-            new()
-            {
-                Model = Model,
-                Projection = camera.GetVPMatrix(),
-                Color = Color,
-                BorderColor = BorderColor,
-                Border = BorderWidths,
-                ScaleRadiusLod = new Vector4(Scale.X, Scale.Y, BorderRadius, BackdropLod),
-                GlowColor = GlowColor,
-                Glow = Glow,
-                UvRect = uvRect
-            }
-        ];
-        _uniforms ??= new GLBuffer<Uniform>(_deleteQueue, BufferTarget.UniformBuffer);
-        _uniforms.Dangerous_SetBufferData(data);
-        GL.BindBufferBase(BufferTarget.UniformBuffer, 0, _uniforms.Handle);
-
-        GL.DrawElements(PrimitiveType.Triangles, GLQuad.EBO.Capacity, DrawElementsType.UnsignedInt, 0);
+            Model = Model,
+            Color = Color,
+            BorderColor = BorderColor,
+            Border = BorderWidths,
+            ScaleRadiusLod = new Vector4(Scale.X, Scale.Y, BorderRadius, BackdropLod),
+            GlowColor = GlowColor,
+            Glow = Glow,
+            UvRect = uvRect
+        };
+        commands.PushUniforms(1, uniforms);
+        commands.DrawIndexed(UnitQuad.IndexCount);
     }
 
     /// <summary>
-    ///     What backdrop-blur needs and Sundex has no pass for: the frame so far, under this box,
-    ///     as a mipmapped texture. The mips are the blur, cheap and a little boxy at a high level.
+    ///     Copies the frame under this box and uses its mip levels as the blur. The copy is rounded up to
+    ///     <see cref="BackdropStep" /> pixels with the real pixels beside the box, so a few pooled textures
+    ///     serve every size. Returns the part of the texture the box covers.
     /// </summary>
-    private Vector4 CopyBackdrop()
+    private Vector4 CopyBackdrop(ICommandList commands)
     {
-        if (_backdropTexture == 0)
-        {
-            _backdropTexture = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2D, _backdropTexture);
-            GL.TexParameteri(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
-                (int)TextureMinFilter.LinearMipmapLinear);
-            GL.TexParameteri(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
-                (int)TextureMagFilter.Linear);
-            GL.TexParameteri(TextureTarget.Texture2D, TextureParameterName.TextureWrapS,
-                (int)TextureWrapMode.ClampToEdge);
-            GL.TexParameteri(TextureTarget.Texture2D, TextureParameterName.TextureWrapT,
-                (int)TextureWrapMode.ClampToEdge);
-        }
+        var target = commands.TargetSize;
+        var left = (int)(Position.X * PixelScale.X);
+        var top = (int)(Position.Y * PixelScale.Y);
+        var width = Math.Max(1, (int)(Scale.X * PixelScale.X));
+        var height = Math.Max(1, (int)(Scale.Y * PixelScale.Y));
+        var size = new Vector2i(Math.Min(RoundUp(width), target.X), Math.Min(RoundUp(height), target.Y));
+        if (size.X <= 0 || size.Y <= 0) return new Vector4(0, 0, 1, 1);
 
-        var viewport = new int[4];
-        GL.GetInteger(GetPName.Viewport, viewport);
-        var height = viewport[3];
-        var x = Math.Max(0, (int)(Position.X * PixelScale.X));
-        var boxWidth = Math.Max(1, (int)(Scale.X * PixelScale.X));
-        var boxHeight = Math.Max(1, (int)(Scale.Y * PixelScale.Y));
-        var y = Math.Max(0, height - (int)(Position.Y * PixelScale.Y) - boxHeight);
+        // Start at the box's corner, moved back inside the target.
+        var x = Math.Clamp(left, 0, target.X - size.X);
+        var y = Math.Clamp(top, 0, target.Y - size.Y);
+        var texture = RentBackdrop(size);
+        commands.CopyFromTarget(new Box2i(x, y, x + size.X, y + size.Y), texture);
+        commands.GenerateMipmaps(texture);
+        commands.SetTexture(2, texture, Sampler.LinearMipmapClamp);
 
-        GL.ActiveTexture(TextureUnit.Texture0);
-        GL.BindTexture(TextureTarget.Texture2D, _backdropTexture);
-        GL.CopyTexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, x, y, boxWidth, boxHeight, 0);
-        GL.GenerateMipmap(TextureTarget.Texture2D);
-        return new Vector4(0, 0, 1, 1);
+        // Texel row 0 holds the bottom row of the copy, and the shader flips V.
+        return new Vector4((left - x) / (float)size.X, (y + size.Y - top - height) / (float)size.Y,
+            width / (float)size.X, height / (float)size.Y);
+
+        static int RoundUp(int pixels) => (pixels + BackdropStep - 1) / BackdropStep * BackdropStep;
     }
 
-    [StructLayout(LayoutKind.Explicit, Size = 240)]
+    private static GPUTexture RentBackdrop(Vector2i size)
+    {
+        GPUTexture? texture = null;
+        for (var index = 0; index < Backdrops.Count; index++)
+        {
+            if (Backdrops[index].Width != size.X || Backdrops[index].Height != size.Y) continue;
+            texture = Backdrops[index];
+            Backdrops.RemoveAt(index);
+            break;
+        }
+
+        if (texture is null)
+        {
+            texture = new GPUTexture { Width = size.X, Height = size.Y };
+            if (Backdrops.Count == MaxBackdrops)
+            {
+                Backdrops[0].Dispose();
+                Backdrops.RemoveAt(0);
+            }
+        }
+
+        Backdrops.Add(texture);
+        return texture;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 176)]
     private struct Uniform
     {
         [FieldOffset(0)] public Matrix4 Model;
-        [FieldOffset(64)] public Matrix4 Projection;
-        [FieldOffset(128)] public Vector4 Color;
-        [FieldOffset(144)] public Vector4 BorderColor;
-        [FieldOffset(160)] public Vector4 Border;
-        [FieldOffset(176)] public Vector4 ScaleRadiusLod;
-        [FieldOffset(192)] public Vector4 GlowColor;
-        [FieldOffset(208)] public Vector4 Glow;
-        [FieldOffset(224)] public Vector4 UvRect;
+        [FieldOffset(64)] public Vector4 Color;
+        [FieldOffset(80)] public Vector4 BorderColor;
+        [FieldOffset(96)] public Vector4 Border;
+        [FieldOffset(112)] public Vector4 ScaleRadiusLod;
+        [FieldOffset(128)] public Vector4 GlowColor;
+        [FieldOffset(144)] public Vector4 Glow;
+        [FieldOffset(160)] public Vector4 UvRect;
     }
 }

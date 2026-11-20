@@ -19,7 +19,7 @@ public class HotReloadTests
     [Fact]
     public void MarkedAssemblyAssetsResolveUnderADifferentRootNamespace()
     {
-        var provider = new AssetProvider(new LoggerConfiguration().CreateLogger(), [], new GLInfo());
+        var provider = new AssetProvider(new LoggerConfiguration().CreateLogger(), []);
 
         Assert.Contains(Assembly.GetExecutingAssembly(), provider.AssetAssemblies);
         Assert.Contains("probe", provider.LoadString("Layouts/HotReloadProbe.txt", StorageLocation.Assembly),
@@ -30,7 +30,7 @@ public class HotReloadTests
     private static AssetProvider Provider()
     {
         return new AssetProvider(new LoggerConfiguration().CreateLogger(),
-            [Assembly.GetExecutingAssembly()], new GLInfo());
+            [Assembly.GetExecutingAssembly()]);
     }
 
     [Fact]

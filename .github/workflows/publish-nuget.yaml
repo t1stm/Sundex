@@ -4,6 +4,11 @@ on:
   push:
     branches: [master]
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Optional explicit prerelease version, for example 1.0.0-render.5'
+        type: string
+        required: false
   release:
     types: [published]
 
@@ -21,9 +26,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - id: version
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
         run: |
           if [ "$GITHUB_EVENT_NAME" = release ]; then
             version=$(build/version.sh stable)
+          elif [ -n "$REQUESTED_VERSION" ]; then
+            version=$(build/version.sh prerelease "$REQUESTED_VERSION")
           else
             version=$(build/version.sh)
           fi

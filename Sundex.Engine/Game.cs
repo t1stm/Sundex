@@ -3,8 +3,6 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
-using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
@@ -12,8 +10,11 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using Serilog;
 using Serilog.Extensions.Logging;
 using Sundex.Engine.AssetManagement;
+using Sundex.Engine.Renderer;
 using Sundex.Engine.Renderer.Abstract;
+using Sundex.Engine.Renderer.OpenGL;
 using Sundex.Engine.Renderer.Attributes;
+using Sundex.Engine.Renderer.Textures;
 using Sundex.Engine.Scenes;
 using Sundex.Engine.Scenes.Arguments;
 using Sundex.Engine.Threading;
@@ -26,9 +27,9 @@ public class Game : GameWindow
 {
     private readonly Queue<Action<Game>> _enqueuedEvents = new();
     private readonly string _id;
-    private readonly ILogger _loggerGL;
-
-    private GLDebugProc _storedDebugCallback = null!; // exists due to .NET design
+    private readonly GLGraphicsDevice _device;
+    private GPUTexture? _frameTarget;
+    private bool _offscreen;
 
     private static readonly (MouseButton Button, string Name)[] TracedButtons =
         [(MouseButton.Left, "left"), (MouseButton.Middle, "middle"), (MouseButton.Right, "right")];
@@ -54,10 +55,10 @@ public class Game : GameWindow
         _id = id;
 
         Logger = serilogLogger.ForContext<Game>();
-        _loggerGL = Logger.ForContext("SourceContext", "OpenGL");
+        _device = new GLGraphicsDevice(this, Logger);
         _inputLogger = new SerilogLoggerFactory(serilogLogger).CreateLogger("Input");
 
-        AssetProvider = new AssetProvider(Logger, [typeof(Game).Assembly, .. assemblies], GLInfo);
+        AssetProvider = new AssetProvider(Logger, [typeof(Game).Assembly, .. assemblies]);
         SceneManager = new SceneManager(Logger);
 
         if (SundexDevelopment.Enabled)
@@ -105,7 +106,7 @@ public class Game : GameWindow
     public bool IsCursorInWindow { get; private set; }
 
     /// <summary>What the context supports; filled in once it exists, before any scene initializes.</summary>
-    public GLInfo GLInfo { get; } = new();
+    public IGraphicsDevice Device => _device;
 
     /// <summary>
     ///     Ratio between physical framebuffer pixels and logical window (client) size, measured
@@ -135,7 +136,7 @@ public class Game : GameWindow
     protected override void OnLoad()
     {
         base.OnLoad();
-        GetGLInfo(GLInfo);
+        _device.Initialize();
         LogSetup();
 
         // This thread is the UI thread from here on: awaits come back to it, and reactive state
@@ -144,23 +145,6 @@ public class Game : GameWindow
         Rx.OnError = (exception, where) => Logger.Error(exception, "[Reactive] {Where} threw", where);
         Clipboard.Read = () => ClipboardString ?? "";
         Clipboard.Write = text => ClipboardString = text;
-
-        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-        GL.Enable(EnableCap.Multisample);
-
-        GL.Enable(EnableCap.DebugOutput);
-        GL.Enable(EnableCap.DebugOutputSynchronous);
-
-        // .NET GC automatically collects this unless it's stored somewhere in a class.
-        // See: https://opentk.net/learn/appendix_opengl/debug_callback.html
-        _storedDebugCallback = DebugCallback;
-
-        if (GLInfo.SupportsKHRDebug)
-            GL.DebugMessageCallback(_storedDebugCallback, in IntPtr.Zero);
-        else RenderMarker.Enabled = false;
-
-        GL.Hint(HintTarget.PolygonSmoothHint, HintMode.Nicest);
-        GL.Hint(HintTarget.LineSmoothHint, HintMode.Nicest);
 
         // Enter/leave only report changes, so the state at startup has to be asked for.
         unsafe
@@ -222,7 +206,6 @@ public class Game : GameWindow
             RuntimeInformation.FrameworkDescription, RuntimeInformation.ProcessArchitecture,
             CultureInfo.CurrentCulture.Name);
 
-        _loggerGL.ForContext<GLInfo>().Information("{@GLInfo}", GLInfo);
     }
 
     private void ReflectionPreloadObjects(Assembly targetAssembly)
@@ -247,53 +230,6 @@ public class Game : GameWindow
         }
     }
 
-    private unsafe void DebugCallback(DebugSource source, DebugType type, uint id,
-        DebugSeverity severity, int length, IntPtr messagePtr, IntPtr userParameter)
-    {
-        switch (type)
-        {
-            case DebugType.DebugTypeOther:
-            case DebugType.DebugTypeMarker when id == 1:
-                return;
-        }
-
-        var stringFromPointer = new ReadOnlySpan<byte>(messagePtr.ToPointer(), length);
-        Span<char> stringBuffer = stackalloc char[stringFromPointer.Length];
-        Encoding.UTF8.GetChars(stringFromPointer, stringBuffer);
-
-        var sourceText = source != DebugSource.DontCare ? source.ToString()[11..] : "Unknown";
-        var typeText = type != DebugType.DontCare ? type.ToString()[9..] : "Unknown";
-        var severityText = severity != DebugSeverity.DontCare ? severity.ToString()[13..] : "Unknown";
-
-        _loggerGL.Debug("{SourceText}, ({TypeText}, {Id}) {SeverityText}: {CallbackMessage}",
-            sourceText, typeText, id, severityText, stringBuffer.ToString());
-    }
-
-    private static void GetGLInfo(GLInfo glInfo)
-    {
-        var extCount = GL.GetInteger(GetPName.NumExtensions);
-        glInfo.Extensions.EnsureCapacity(extCount);
-
-        for (uint index = 0; index < extCount; index++)
-        {
-            var ext = GL.GetStringi(StringName.Extensions, index);
-            if (ext is not null)
-                glInfo.Extensions.Add(ext);
-        }
-
-        glInfo.SupportsKHRDebug = glInfo.Extensions.Contains("GL_KHR_debug");
-        glInfo.SupportsDirectStateAccess = glInfo.Extensions.Contains("GL_ARB_direct_state_access");
-        // compute shaders and storage buffers are core from 4.3, the version the kernels' GLSL asks for
-        var version = GL.GetInteger(GetPName.MajorVersion) * 10 + GL.GetInteger(GetPName.MinorVersion);
-        glInfo.SupportsComputeShaders = version >= 43;
-
-        glInfo.Vendor = GL.GetString(StringName.Vendor) ?? "";
-        glInfo.Renderer = GL.GetString(StringName.Renderer) ?? "";
-        glInfo.Version = GL.GetString(StringName.Version) ?? "";
-        glInfo.MaxTexture2DSize = GL.GetInteger(GetPName.MaxTextureSize);
-        glInfo.MaxTexture2DLayers = GL.GetInteger(GetPName.MaxArrayTextureLayers);
-    }
-
     protected override void OnFramebufferResize(FramebufferResizeEventArgs e)
     {
         base.OnFramebufferResize(e);
@@ -303,24 +239,50 @@ public class Game : GameWindow
     private void ApplyFramebufferSize(int width, int height)
     {
         SceneManager.Resize(width, height);
-        GL.Viewport(0, 0, width, height);
+        Device.Resize(width, height);
+        _frameTarget?.Dispose();
+        _frameTarget = new GPUTexture
+        {
+            Width = Math.Max(1, width), Height = Math.Max(1, height),
+            Usage = TextureUsage.RenderTarget, MipmapMode = MipmapMode.Disabled
+        };
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
     {
-        GL.Enable(EnableCap.Blend);
-        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-        GL.ClearColor(.0f, .0f, .0f, 0f);
+        var commands = BeginRenderFrame();
+        SceneManager.Render(new RenderArguments { Commands = commands, Delta = args.Time });
+        EndRenderFrame(commands);
+    }
 
-        SceneManager.Render(new RenderArguments
+    protected ICommandList BeginRenderFrame()
+    {
+        var commands = Device.BeginFrame();
+        // Offscreen while frames copy what they have drawn, as backdrop blur does, so a backend never
+        // copies from the window. Otherwise straight to the window, which saves a full-screen copy.
+        // ponytail: the first copying frame still reads the window, which OpenGL allows; a backend
+        // that can't must draw offscreen every frame.
+        _offscreen = _device.CopiedFromTargetLastFrame;
+        commands.BeginPass(new PassDescription(_offscreen ? _frameTarget : null, Vector4.Zero));
+        return commands;
+    }
+
+    protected void EndRenderFrame(ICommandList commands)
+    {
+        commands.EndPass();
+        OnAfterRenderPass();
+        if (_offscreen)
         {
-            Delta = args.Time
-        });
-
-        GL.Disable(EnableCap.Blend);
-        Context.SwapBuffers();
+            commands.BeginPass(new PassDescription());
+            commands.CopyToTarget(_frameTarget!);
+            commands.EndPass();
+        }
+        Device.EndFrame();
         if (SundexDevelopment.Enabled) LogInput();
     }
+
+    /// <summary>Runs after the frame pass and before presentation, when pixel readback reads the frame.</summary>
+    protected virtual void OnAfterRenderPass() { }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
     {
@@ -337,7 +299,7 @@ public class Game : GameWindow
         var initArguments = new InitArguments
         {
             StartingResolution = ClientSize,
-            GLInfo = GLInfo
+            Capabilities = Device.Capabilities
         };
 
         lock (_enqueuedEvents)
@@ -502,6 +464,16 @@ public class Game : GameWindow
             HotReload.Requested = null;
             _sourceWatcher.Dispose();
         }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing && _device is { IsDisposed: false })
+        {
+            MakeCurrent();
+            _device.Dispose();
+        }
+        base.Dispose(disposing);
     }
 
     public void Enqueue(Action<Game> action)

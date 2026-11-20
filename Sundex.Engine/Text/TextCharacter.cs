@@ -11,9 +11,9 @@ namespace Sundex.Engine.Text;
 ///     table, at <see cref="Glyph" />.
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct TextCharacter() : IGPUReflection, IPositionable
+public struct TextCharacter() : IVertexData, IPositionable
 {
-    // Declaration order is memory order, which SelfReflectToGL mirrors.
+    // Declaration order is memory order, which DescribeLayout mirrors.
     public Vector3 Position { get; set; }
 
     private Vector2 _scale;
@@ -45,12 +45,12 @@ public struct TextCharacter() : IGPUReflection, IPositionable
     /// <summary>The glyph's row in its font's glyph table: <c>SlugGlyph.Index</c>.</summary>
     public uint Glyph;
 
-    public static void SelfReflectToGL(VertexBufferLayout layout)
+    public static void DescribeLayout(VertexBufferLayout layout)
     {
-        layout.PushFloat(3, true); // Position
-        layout.PushFloat(2, true); // Scale
-        layout.PushByte(4, true, normalized: true); // Color
-        layout.PushFloat(4, true); // ClipRect
-        layout.PushUInt(1, true); // Glyph
+        layout.PushFloat(3); // Position
+        layout.PushFloat(2); // Scale
+        layout.PushByte(4, normalized: true); // Color
+        layout.PushFloat(4); // ClipRect
+        layout.PushUInt(1); // Glyph
     }
 }

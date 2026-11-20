@@ -1,6 +1,8 @@
 using OpenTK.Mathematics;
 using Sundex.Components.Abstractions;
+using Sundex.Core;
 using Sundex.Core.Animations;
+using Sundex.Engine.Renderer;
 
 namespace Sundex.Components.Tests;
 
@@ -20,15 +22,30 @@ public class UIElementTests
         var updateCalled = false;
         element.OnUpdate = () => updateCalled = true;
 
-        context.Render();
+        context.Render(new RecordingCommandList());
         Assert.True(updateCalled);
 
         element.RemoveAnimation(animation);
         Assert.Empty(element.Animations);
 
         updateCalled = false;
-        context.Render();
+        context.Render(new RecordingCommandList());
         Assert.False(updateCalled);
+    }
+
+    [Fact]
+    public void RenderPassesTopLeftPhysicalScissorsAndClearsTheLastClip()
+    {
+        var context = new TestUIContext { PixelScale = (2, 1.5f) };
+        var commands = new RecordingCommandList();
+        context.QueueRender(new DummyRenderable { Scale = Vector3.One, ClipRect = (3, 4, 13, 12) }, 0);
+
+        context.Render(commands);
+
+        Assert.Collection(commands.Calls,
+            call => Assert.Equal(nameof(ICommandList.SetView), call.Name),
+            call => Assert.Equal(new Box2i(6, 6, 26, 18), Assert.IsType<Box2i>(call.Data)),
+            call => Assert.Equal((nameof(ICommandList.SetScissor), (object?)null), call));
     }
 
     [Fact]

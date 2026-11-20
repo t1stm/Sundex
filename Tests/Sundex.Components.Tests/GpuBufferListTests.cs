@@ -1,21 +1,33 @@
 using Sundex.Engine.Renderer.Buffers;
-using Sundex.Engine.Renderer.Queues;
 
 namespace Sundex.Components.Tests;
 
 /// <summary>
-///     The tracked references a <see cref="GLBufferList{TDataType}" /> hands out have to
+///     The tracked references a <see cref="GpuBufferList{TDataType}" /> hands out have to
 ///     survive their neighbours shifting - EditorScene's sound picker releases one per icon,
 ///     long after the insertions and removals that moved them, so a reference must still point
 ///     at its own slot after every shift.
 ///     Lives here rather than in an engine test project of its own: this is the nearest
 ///     project that already links the engine.
 /// </summary>
-public class GLBufferListTests
+public class GpuBufferListTests
 {
-    private static GLBufferList<int> Filled(int count)
+    [Fact]
+    public void SetDataReplacesContentsAndKeepsReferencesToSurvivingSlots()
     {
-        var list = new GLBufferList<int>(new DeleteQueue(), count);
+        using var list = Filled(3);
+        var reference = list.GetReferenceAt(1);
+
+        list.SetData([30, 40]);
+        Assert.Equal([30, 40], list);
+        Assert.Same(reference, list.GetReferenceAt(1));
+        list.Remove(reference);
+        Assert.Equal([30], list);
+    }
+
+    private static GpuBufferList<int> Filled(int count)
+    {
+        var list = new GpuBufferList<int>(count);
         for (var index = 0; index < count; index++) list.Add(index * 10);
         return list;
     }
@@ -24,7 +36,7 @@ public class GLBufferListTests
     ///     Which order the reference map ends up holding them in - the two shift directions
     ///     each fall over on one of the two, so a test picks the one that bites.
     /// </param>
-    private static TrackedBufferReference<int>[] References(GLBufferList<int> list, bool backToFront)
+    private static TrackedBufferReference<int>[] References(GpuBufferList<int> list, bool backToFront)
     {
         var references = new TrackedBufferReference<int>[list.Count];
         for (var position = 0; position < list.Count; position++)

@@ -1,5 +1,4 @@
 using System.Text.Json;
-using OpenTK.Graphics.OpenGL;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Sundex.Engine.AssetManagement;
@@ -11,7 +10,7 @@ namespace Sundex.Engine.Renderer.Textures.Atlases;
 public class GPUTextureAtlas(
     int width,
     int height,
-    InternalFormat internalFormat = InternalFormat.Rgba8,
+    TextureFormat format = TextureFormat.Rgba8Unorm,
     MipmapMode mipmapMode = MipmapMode.Enabled)
 {
     public required string AtlasID { get; init; } // used for identification of the atlas when caching
@@ -22,7 +21,7 @@ public class GPUTextureAtlas(
     {
         Width = width,
         Height = height,
-        InternalFormat = internalFormat,
+        Format = format,
         MipmapMode = mipmapMode
     };
 
@@ -33,11 +32,6 @@ public class GPUTextureAtlas(
     {
         var rectangle = Atlas.AddImage(name, image);
         Texture.QueueUploadToGPU(image, rectangle);
-    }
-
-    public virtual void Bind()
-    {
-        Texture.Bind();
     }
 
     public void LoadFromCache(AssetProvider assetProvider)
@@ -55,19 +49,19 @@ public class GPUTextureAtlas(
         if (!(textureExists && atlasInfoExists))
             return;
 
-        if (internalFormat != InternalFormat.Rgba8 && internalFormat != InternalFormat.Rgba32f)
+        if (format != TextureFormat.Rgba8Unorm && format != TextureFormat.Rgba32Float)
             throw new Exception("Invalid atlas texture format for saving and loading.");
 
-        switch (internalFormat)
+        switch (format)
         {
-            case InternalFormat.Rgba8:
+            case TextureFormat.Rgba8Unorm:
             {
                 var texture = Image.Load<Rgba32>(atlasTexture!.AssetStream.Stream);
                 Texture.QueueUploadToGPU(texture.Frames.RootFrame);
                 break;
             }
 
-            case InternalFormat.Rgba32f:
+            case TextureFormat.Rgba32Float:
             {
                 var texture = Image.Load<RgbaVector>(atlasTexture!.AssetStream.Stream);
                 Texture.QueueUploadToGPU(texture.Frames.RootFrame);

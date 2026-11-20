@@ -1,4 +1,4 @@
-using Sundex.Engine.Renderer.Cameras;
+using Sundex.Engine.Renderer;
 using Sundex.Engine.Text;
 using Sundex.Engine.Text.Fonts;
 
@@ -8,7 +8,7 @@ public class MockTextProvider(IGlyphProvider? glyphProvider = null) : ITextProvi
 {
     public IGlyphProvider GlyphProvider { get; } = glyphProvider ?? new MockGlyphProvider();
 
-    public void BindAndSetUniforms(Camera camera)
+    public void Bind(ICommandList commands)
     {
     }
 }

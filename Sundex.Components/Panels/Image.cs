@@ -5,7 +5,6 @@ using Sundex.Core.Renderer.Planes;
 using Sundex.Engine.AssetManagement.Types.Asset;
 using Sundex.Engine.AssetManagement.Types.Texture;
 using Sundex.Engine.Renderer.Abstract.Extensions;
-using Sundex.Engine.Renderer.Enums;
 using Sundex.Engine.Renderer.Textures;
 using Sundex.Style.DSL;
 using ImageData = SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>;
@@ -99,7 +98,7 @@ public class Image : Panel
         Background = _plane = new TexturedPlane { IsVisible = false };
 
         // Registered for good, not just while loading: the update pass is the only
-        // reliable per-frame hook, and it is where a finished fetch is handed to GL.
+        // reliable per-frame hook, and it is where a finished fetch is queued for the graphics device.
         Context.RegisterUpdate(this);
     }
 
@@ -185,7 +184,7 @@ public class Image : Panel
     /// <summary>The texture in use, once a load has landed and been applied on the update thread.</summary>
     public GPUTexture? Texture => _texture;
 
-    /// <summary>True once <see cref="Src" /> has been fetched, decoded and handed to GL.</summary>
+    /// <summary>True once <see cref="Src" /> has been fetched, decoded and queued for the graphics device.</summary>
     public bool IsLoaded => _texture is not null && !ShowsPlaceholder;
 
     /// <summary>
@@ -267,8 +266,7 @@ public class Image : Panel
             Height = pixels.Height
         };
 
-        // Neither call touches GL - the handle is created and the queue drained at the first
-        // Bind(), on the render thread.
+        // The graphics device creates the texture and drains the queue on first use.
         texture.QueueUploadToGPU(pixels.Frames[0]);
         SetTexture(texture, pixels);
     }
@@ -279,7 +277,8 @@ public class Image : Panel
     /// </summary>
     public void SetTexture(GPUTexture texture, ImageData? pixels = null)
     {
-        ReleaseTexture();
+        if (ReferenceEquals(_texture, texture)) pixels ??= _pixels;
+        else ReleaseTexture(pixels);
 
         ShowsPlaceholder = _loadingPlaceholder;
         _loadingPlaceholder = false;
@@ -287,8 +286,7 @@ public class Image : Panel
         _texture = texture;
         _pixels = pixels;
         _plane.Texture = texture;
-        // Held false until here: TexturedPlane.Render does a null-safe Texture?.Bind(), so a
-        // plane without one would draw with whatever texture happened to be bound last.
+        // Queue the plane for drawing once it has a texture.
         _plane.IsVisible = true;
 
         RelayoutFromRoot();
@@ -504,16 +502,10 @@ public class Image : Panel
         ReleaseTexture();
     }
 
-    private void ReleaseTexture()
+    private void ReleaseTexture(ImageData? pixelsToKeep = null)
     {
-        if (_texture is { } old)
-        {
-            if (old.Handle != 0) Context.DeleteQueue.Enqueue(DeleteType.Texture, old.Handle);
-
-            // The queued upload still points at these pixels until the first Bind() runs it;
-            // disposing beforehand would hand GL freed memory. Left to the GC in that case.
-            if (!old.BufferState.HasFlag(BufferState.PendingUpload)) _pixels?.Dispose();
-        }
+        _texture?.Dispose();
+        if (!ReferenceEquals(_pixels, pixelsToKeep)) _pixels?.Dispose();
 
         _texture = null;
         _pixels = null;

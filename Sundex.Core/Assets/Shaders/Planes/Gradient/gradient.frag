@@ -9,9 +9,8 @@ out vec4 color;
 in vec2 vLocalPos;
 in vec2 vUV;
 
-layout (std140) uniform Data {
+layout (std140) uniform Draw {
     mat4 u_Model;
-    mat4 u_Projection;
     vec4 u_ScaleAndBorderPx;
 
     int u_GradientType;

@@ -1,3 +1,4 @@
+using Sundex.Engine.Renderer;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using OpenTK.Mathematics;
@@ -472,7 +473,7 @@ public class RenderQueueTests
         {
             var logger = new LoggerConfiguration().CreateLogger();
             InjectForTesting(
-                new AssetProvider(logger, [Assembly.GetExecutingAssembly()], new GLInfo()),
+                new AssetProvider(logger, [Assembly.GetExecutingAssembly()]),
                 new MockFontProvider(),
                 new MockTextProvider());
             Camera = new UICamera(Vector3.Zero, new Vector2i(800, 600));
@@ -490,7 +491,7 @@ public class RenderQueueTests
         {
         }
 
-        public override void Render(Camera camera)
+        public override void Render(in RenderContext context)
         {
         }
 

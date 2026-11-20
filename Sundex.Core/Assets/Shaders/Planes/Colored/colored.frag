@@ -4,9 +4,8 @@ out vec4 color;
 
 in vec2 vLocalPos;
 
-layout (std140) uniform Data {
+layout (std140) uniform Draw {
     mat4 u_Model;
-    mat4 u_Projection;
 
     vec4 u_Color;
     vec4 u_ScaleAndBorderPx;

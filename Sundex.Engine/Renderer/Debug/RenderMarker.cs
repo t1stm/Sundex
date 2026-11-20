@@ -1,42 +1,31 @@
-using System.Text;
-using OpenTK.Graphics.OpenGL;
 using Sundex.Reactive;
 
 namespace Sundex.Engine.Renderer.Debug;
 
 public static class RenderMarker
 {
+    internal delegate void MarkerSink(ReadOnlySpan<char> message, MarkerType markerType);
+
+    [ThreadStatic] internal static MarkerSink? Sink;
+
     public static bool Enabled
     {
-        get => field && SundexDevelopment.Enabled;
+        get => field && SundexDevelopment.Enabled && Sink is not null;
         set;
     } = true;
 
-    public static unsafe void Debug(ReadOnlySpan<char> message, MarkerType markerType = MarkerType.Visible,
-        DebugSource source = DebugSource.DebugSourceApplication,
-        DebugType type = DebugType.DebugTypeMarker)
+    public static void Debug(ReadOnlySpan<char> message, MarkerType markerType = MarkerType.Visible)
     {
-        if (!Enabled) return;
-        var bytesLength = message.Length * sizeof(char);
-        Span<byte> bytes = stackalloc byte[bytesLength];
-
-        Encoding.UTF8.GetBytes(message, bytes);
-        var id = (uint)markerType;
-
-        fixed (byte* messagePtr = bytes)
-        {
-            GL.DebugMessageInsert(source, type, id, DebugSeverity.DebugSeverityNotification, -1, messagePtr);
-        }
+        if (Enabled) Sink?.Invoke(message, markerType);
     }
 
     public static void Debug(ReadOnlySpan<char> message1, ReadOnlySpan<char> message2,
-        MarkerType markerType = MarkerType.Visible,
-        DebugSource source = DebugSource.DebugSourceApplication,
-        DebugType type = DebugType.DebugTypeMarker)
+        MarkerType markerType = MarkerType.Visible)
     {
         if (!Enabled) return;
         Span<char> message = stackalloc char[message1.Length + message2.Length];
-        message.TryWrite($"{message1}{message2}", out _);
-        Debug(message, markerType, source, type);
+        message1.CopyTo(message);
+        message2.CopyTo(message[message1.Length..]);
+        Sink?.Invoke(message, markerType);
     }
 }

@@ -1,8 +1,8 @@
 using OpenTK.Graphics.OpenGL;
 
-namespace Sundex.Engine.Renderer.Textures;
+namespace Sundex.Engine.Renderer.OpenGL;
 
-public readonly struct PixelUploadInfo(PixelFormat format, PixelType type)
+internal readonly struct PixelUploadInfo(PixelFormat format, PixelType type)
 {
     public PixelFormat Format { get; } = format;
     public PixelType Type { get; } = type;
