@@ -1,0 +1,25 @@
+<sundex version="2.0" component="title-card">
+  <style language="sundex" src="Markup/Game.snx.ss"/>
+
+  <logic language="csharp" src="Markup/Card.snx.csx"/>
+
+  <layout>
+    <flex class="card" opacity="{(float)shown.Value}" translate-y="{(float)(1 - shown.Value) * 28}">
+      <image class="emblem" src="Assets/Textures/moai.png"/>
+      <label class="title" value="Clapping Moai"/>
+      <label class="tagline" value="Clap to rise. Slip between the pillars."/>
+      <flex class="keys">
+        <flex class="key">
+          <label class="key-text" value="Space"/>
+        </flex>
+        <label class="or" value="or"/>
+        <flex class="key">
+          <label class="key-text" value="Click"/>
+        </flex>
+      </flex>
+      <if condition="{Context.Best.Value > 0}">
+        <label class="best" value="Best {Context.Best.Value}"/>
+      </if>
+    </flex>
+  </layout>
+</sundex>

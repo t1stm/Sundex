@@ -1,0 +1,18 @@
+<sundex version="2.0" component="overlay">
+  <style language="sundex" src="Markup/Game.snx.ss"/>
+
+  <layout>
+    <flex class="screen">
+      <if condition="{Context.Phase.Value == Phase.Title}">
+        <title-card/>
+      </if>
+      <else-if condition="{Context.ShowResults.Value}">
+        <results-card score="{Context.Score.Value}" best="{Context.Best.Value}" new-best="{Context.NewBest.Value}"
+                      on.again="{() => Context.Again()}"/>
+      </else-if>
+      <else>
+        <label class="score" value="{Context.Score.Value.ToString()}"/>
+      </else>
+    </flex>
+  </layout>
+</sundex>

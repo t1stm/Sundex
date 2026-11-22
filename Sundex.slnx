@@ -12,6 +12,9 @@
   <Folder Name="/Debug/">
     <Project Path="Debug/Sundex.Engine.DummyProject/Sundex.Engine.DummyProject.csproj" />
   </Folder>
+  <Folder Name="/Samples/">
+    <Project Path="samples/Sundex.Samples.ClappingMoai/Sundex.Samples.ClappingMoai.csproj" />
+  </Folder>
   <Folder Name="/Tests/">
     <Project Path="Tests/Sundex.Components.Tests/Sundex.Components.Tests.csproj" />
     <Project Path="Tests/Sundex.Markup.Tests/Sundex.Markup.Tests.csproj" />

@@ -192,6 +192,8 @@ public class KeyframedAnimation : Animation
     public override Vector4 GetColor_Value(Renderable renderable)
     {
         var (current, next, progress) = GetCurrentState();
+        // Zero tells the renderable to keep its colour: an opacity-only animation mustn't paint it white.
+        if (current.Color == null && next?.Color == null) return Vector4.Zero;
         var currentColor = current.Color ?? Vector4.One;
         if (next == null) return currentColor;
 

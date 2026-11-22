@@ -1,0 +1,37 @@
+<sundex version="2.0" component="results-card">
+  <style language="sundex" src="Markup/Game.snx.ss"/>
+
+  <props>
+    <prop name="score" type="int"/>
+    <prop name="best" type="int"/>
+    <prop name="new-best" type="bool" default="false"/>
+    <event name="again"/>
+  </props>
+
+  <logic language="csharp" src="Markup/Card.snx.csx"/>
+
+  <layout>
+    <flex class="card" opacity="{(float)shown.Value}" translate-y="{(float)(1 - shown.Value) * 28}">
+      <label class="heading" value="Toppled!"/>
+      <flex class="stats">
+        <flex class="stat">
+          <label class="stat-label" value="SCORE"/>
+          <label class="stat-value" value="{score.ToString()}"/>
+        </flex>
+        <flex class="stat">
+          <label class="stat-label" value="BEST"/>
+          <label class="stat-value" value="{best.ToString()}"/>
+        </flex>
+      </flex>
+      <if condition="{new_best}">
+        <flex class="badge">
+          <label class="badge-text" value="New best!"/>
+        </flex>
+      </if>
+      <button class="again" on.click="{again}">
+        <label class="again-text" value="Clap again"/>
+      </button>
+      <label class="hint" value="or press Space"/>
+    </flex>
+  </layout>
+</sundex>

@@ -175,4 +175,21 @@ public class AnimationTests
         // Expected color = Lerp(Red, Blue, 0.5) = (0.5, 0, 0.5, 1)
         Assert.Equal(new Vector4(0.5f, 0, 0.5f, 1), color);
     }
+
+    [Fact]
+    public void OpacityOnlyKeyframesKeepTheColor()
+    {
+        var animation = new KeyframedAnimation(
+        [
+            new Keyframe { LengthMs = 1000, Opacity = 1 },
+            new Keyframe { LengthMs = 1000, Opacity = 0.5f }
+        ]);
+        var renderable = new DummyRenderable { Color = new Vector4(1, 0.8f, 0.5f, 1) };
+
+        animation.TimingStopwatch.Seek(500);
+        renderable.UpdateModel(false, [animation]);
+
+        Assert.Equal(new Vector3(1, 0.8f, 0.5f), renderable.Color.Xyz);
+        Assert.Equal(0.75f, renderable.Color.W, 3);
+    }
 }

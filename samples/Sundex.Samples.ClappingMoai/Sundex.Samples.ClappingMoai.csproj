@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- samples/Directory.Build.props keeps the repository's props out, so this sample imports
+       what a Sundex package would bring in through buildTransitive. -->
+  <Import Project="../../Sundex.Engine/buildTransitive/Sundex.Engine.props"/>
+  <Import Project="../../Sundex.Markup.Generator/buildTransitive/Sundex.Markup.Generator.props"/>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>ClappingMoai</AssemblyName>
+    <RootNamespace>ClappingMoai</RootNamespace>
+    <SundexMarkupContext>ClappingMoai.GameState</SundexMarkupContext>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../Sundex.Markup/Sundex.Markup.csproj"/>
+    <ProjectReference Include="../../Sundex.Markup.Generator/Sundex.Markup.Generator.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+    <EmbeddedResource Include="Assets/Textures/*.png"/>
+  </ItemGroup>
+
+</Project>
