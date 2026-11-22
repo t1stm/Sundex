@@ -459,11 +459,9 @@ public class Game : GameWindow
     {
         base.OnClosing(e);
         SceneManager.Shutdown();
-        if (_sourceWatcher != null)
-        {
-            HotReload.Requested = null;
-            _sourceWatcher.Dispose();
-        }
+        if (_sourceWatcher == null) return;
+        HotReload.Requested = null;
+        _sourceWatcher.Dispose();
     }
 
     protected override void Dispose(bool disposing)

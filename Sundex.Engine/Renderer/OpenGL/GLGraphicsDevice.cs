@@ -5,7 +5,6 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Desktop;
 using Serilog;
-using Sundex.Engine.Renderer.Debug;
 using Sundex.Reactive;
 
 namespace Sundex.Engine.Renderer.OpenGL;
@@ -70,7 +69,7 @@ public sealed class GLGraphicsDevice : IGraphicsDevice
         if (!SupportsDebug) return;
         GL.Enable(EnableCap.DebugOutput);
         GL.Enable(EnableCap.DebugOutputSynchronous);
-        GL.DebugMessageCallback(_debugCallback, in IntPtr.Zero);
+        GL.DebugMessageCallback(_debugCallback, in nint.Zero);
         RenderMarker.Sink = _markerSink;
     }
 
@@ -180,7 +179,7 @@ public sealed class GLGraphicsDevice : IGraphicsDevice
         while (_resources.Count > 0) Destroy(_resources.First());
         _retired.Clear();
         if (RenderMarker.Sink == _markerSink) RenderMarker.Sink = null;
-        if (SupportsDebug) GL.DebugMessageCallback(IntPtr.Zero, null);
+        if (SupportsDebug) GL.DebugMessageCallback(nint.Zero, null);
     }
 
     private static unsafe void InsertMarker(ReadOnlySpan<char> message, MarkerType type)
@@ -194,7 +193,7 @@ public sealed class GLGraphicsDevice : IGraphicsDevice
     }
 
     private unsafe void DebugCallback(DebugSource source, DebugType type, uint id, DebugSeverity severity,
-        int length, IntPtr message, IntPtr userParameter)
+        int length, nint message, nint userParameter)
     {
         if (type is DebugType.DebugTypeOther || type is DebugType.DebugTypeMarker && id == (uint)MarkerType.Hidden)
             return;

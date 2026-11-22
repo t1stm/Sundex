@@ -79,11 +79,9 @@ internal sealed class GLCommandList(GLGraphicsDevice device, ILogger logger) : I
         BindTarget();
         _pass = true;
         ForgetPipeline();
-        if (pass.ClearColor is { } color)
-        {
-            GL.ClearColor(color.X, color.Y, color.Z, color.W);
-            GL.Clear(ClearBufferMask.ColorBufferBit);
-        }
+        if (pass.ClearColor is not { } color) return;
+        GL.ClearColor(color.X, color.Y, color.Z, color.W);
+        GL.Clear(ClearBufferMask.ColorBufferBit);
     }
 
     private void BindTarget()
@@ -144,7 +142,7 @@ internal sealed class GLCommandList(GLGraphicsDevice device, ILogger logger) : I
                 }
                 catch (InvalidOperationException exception) when (program is not null)
                 {
-                    logger.Error(exception, "Shader reload failed. Keeping the previous program.");
+                    logger.Error(exception, "Shader reload failed. Keeping the previous program");
                     program.Version = shader.Version;
                 }
             }
@@ -191,7 +189,7 @@ internal sealed class GLCommandList(GLGraphicsDevice device, ILogger logger) : I
                     continue;
                 }
             }
-            logger.Debug("Shader {Shader} has no active binding named {Name}.",
+            logger.Debug("Shader {Shader} has no active binding named {Name}",
                 shader.Sources[0].Info.AssetInfo.Location, entry.Name);
         }
 
@@ -413,7 +411,7 @@ internal sealed class GLCommandList(GLGraphicsDevice device, ILogger logger) : I
             PrimitiveTopology.Triangles => PrimitiveType.Triangles,
             _ => throw new ArgumentOutOfRangeException(nameof(pipeline))
         };
-        var offset = (IntPtr)((long)firstIndex * sizeof(int));
+        var offset = (nint)((long)firstIndex * sizeof(int));
         if (instanceCount == 1 && !pipeline.HasInstanceAttributes)
             GL.DrawElements(topology, indexCount, DrawElementsType.UnsignedInt, offset);
         else

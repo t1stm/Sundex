@@ -568,15 +568,24 @@ public class FlexPanel : Panel, IPositioningElement
     private static (float Width, float Height) Size(UIElement child, float availableW, float availableH) =>
         child.Measure(availableW, float.IsInfinity(availableH) ? 100000f : availableH);
 
-    private static (float Lead, float Between) Spread(Justify justify, float extra, int count) => justify switch
+    /// <summary>
+    ///     Where justify puts a line's free space. Center and end keep their place when the content
+    ///     overflows and spill past the start edge, as in CSS and as align does on the cross axis; the
+    ///     spacing modes only spread room there is.
+    /// </summary>
+    private static (float Lead, float Between) Spread(Justify justify, float free, int count)
     {
-        Justify.Center => (extra / 2, 0),
-        Justify.End => (extra, 0),
-        Justify.Between when count > 1 => (0, extra / (count - 1)),
-        Justify.Around when count > 0 => (extra / count / 2, extra / count),
-        Justify.Evenly when count > 0 => (extra / (count + 1), extra / (count + 1)),
-        _ => (0, 0)
-    };
+        var extra = Math.Max(free, 0);
+        return justify switch
+        {
+            Justify.Center => (free / 2, 0),
+            Justify.End => (free, 0),
+            Justify.Between when count > 1 => (0, extra / (count - 1)),
+            Justify.Around when count > 0 => (extra / count / 2, extra / count),
+            Justify.Evenly when count > 0 => (extra / (count + 1), extra / (count + 1)),
+            _ => (0, 0)
+        };
+    }
 
     private (float, float) ArrangeRow(List<UIElement> items, float innerW, float innerH, bool commit)
     {
@@ -667,7 +676,7 @@ public class FlexPanel : Panel, IPositioningElement
         }
 
         var extra = Math.Max(free, 0);
-        var (lead, between) = autos == 0 ? Spread(MainJustify, extra, itemCount) : (0, 0);
+        var (lead, between) = autos == 0 ? Spread(MainJustify, free, itemCount) : (0, 0);
         var share = autos > 0 ? extra / autos : 0;
         var x = InsetLeft - _scrollX + lead;
         for (var index = 0; index < itemCount; index++)
@@ -767,7 +776,7 @@ public class FlexPanel : Panel, IPositioningElement
             if (!firstLine) y += RowGap;
             if (commit)
             {
-                var (lead, between) = Spread(MainJustify, Math.Max(free, 0), count);
+                var (lead, between) = Spread(MainJustify, free, count);
                 var x = lead;
                 for (var index = 0; index < count; index++)
                 {
@@ -943,7 +952,7 @@ public class FlexPanel : Panel, IPositioningElement
         }
 
         var extra = Math.Max(free, 0);
-        var (lead, between) = autos == 0 ? Spread(MainJustify, extra, itemCount) : (0, 0);
+        var (lead, between) = autos == 0 ? Spread(MainJustify, free, itemCount) : (0, 0);
         var share = autos > 0 ? extra / autos : 0;
         var y = InsetTop - _scrollY + lead;
         for (var index = 0; index < itemCount; index++)

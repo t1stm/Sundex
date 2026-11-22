@@ -5,22 +5,15 @@ namespace Sundex.Engine.Renderer.Shaders;
 
 public enum ShaderStage { Vertex, Fragment, Compute }
 
-public sealed class Shader : IDisposable
+public sealed class Shader(AssetProvider assetProvider, ShaderLayout layout, params ShaderSource[] sources)
+    : IDisposable
 {
-    private readonly AssetProvider _assetProvider;
     internal ResourceBacking Backing { get; } = new();
-
-    public Shader(AssetProvider assetProvider, ShaderLayout layout, params ShaderSource[] sources)
-    {
-        _assetProvider = assetProvider;
-        Layout = layout;
-        Sources = sources;
-    }
 
     public static Shader Dummy { get; } = new(null!, ShaderLayout.Empty);
 
-    public ShaderLayout Layout { get; }
-    internal ShaderSource[] Sources { get; private set; }
+    public ShaderLayout Layout { get; } = layout;
+    internal ShaderSource[] Sources { get; private set; } = sources;
     public int Version { get; private set; }
 
     public void ReloadShader()
@@ -29,7 +22,7 @@ public sealed class Shader : IDisposable
         {
             Backing.ThrowIfDisposed();
             var replacement = new ShaderSource[Sources.Length];
-            _assetProvider.Load(replacement, Array.ConvertAll(Sources, source => source.Info));
+            assetProvider.Load(replacement, Array.ConvertAll(Sources, source => source.Info));
             Sources = replacement;
             Version++;
         }

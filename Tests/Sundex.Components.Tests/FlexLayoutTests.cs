@@ -51,6 +51,22 @@ public class FlexLayoutTests
     }
 
     [Fact]
+    public void CentringKeepsOverflowingContentCentred()
+    {
+        // A 40 px button with 18 px padding has 4 px inside: its label overflows both ways, as in CSS.
+        var context = new TestUIContext();
+        var button = Panel(context, 60, 40, LayoutDirection.Vertical);
+        button.Padding = 18;
+        button.VerticalAlign = Align.Center;
+        var label = Fixed(context, 20, 18);
+        button.Children = [label];
+
+        button.Layout();
+
+        Assert.Equal(11, label.Computed.Y);
+    }
+
+    [Fact]
     public void JustifyBetweenSpreadsTheFreeSpace()
     {
         var context = new TestUIContext();

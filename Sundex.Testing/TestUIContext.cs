@@ -4,7 +4,6 @@ using OpenTK.Mathematics;
 using Serilog;
 using Sundex.Components;
 using Sundex.Components.Abstractions;
-using Sundex.Engine;
 using Sundex.Engine.AssetManagement;
 using Sundex.Engine.Renderer.Abstract;
 

@@ -1,5 +1,4 @@
 using OpenTK.Graphics.OpenGL;
-using Sundex.Engine.Renderer.Debug;
 
 namespace Sundex.Engine.Renderer.OpenGL;
 

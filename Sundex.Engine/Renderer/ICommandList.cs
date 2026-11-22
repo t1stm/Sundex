@@ -55,12 +55,15 @@ public enum Sampler { LinearClamp, LinearMipmapClamp, NearestClamp }
 
 public static class CommandListExtensions
 {
-    public static void PushUniforms<T>(this ICommandList commands, int binding, in T data)
-        where T : unmanaged => commands.PushUniforms(binding, MemoryMarshal.AsBytes(new ReadOnlySpan<T>(in data)));
-
-    public static RenderContext WithCamera(this ICommandList commands, Camera camera)
+    extension(ICommandList commands)
     {
-        commands.SetView(camera.GetVPMatrix());
-        return new RenderContext(commands, camera);
+        public void PushUniforms<T>(int binding, in T data)
+            where T : unmanaged => commands.PushUniforms(binding, MemoryMarshal.AsBytes(new ReadOnlySpan<T>(in data)));
+
+        public RenderContext WithCamera(Camera camera)
+        {
+            commands.SetView(camera.GetVPMatrix());
+            return new RenderContext(commands, camera);
+        }
     }
 }

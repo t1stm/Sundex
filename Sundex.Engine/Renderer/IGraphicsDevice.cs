@@ -1,5 +1,4 @@
 using OpenTK.Mathematics;
-using Sundex.Engine.Renderer.Debug;
 
 namespace Sundex.Engine.Renderer;
 

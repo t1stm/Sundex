@@ -54,7 +54,7 @@ public class AssetProvider : IAssetProvider
             }
         }
 
-        return assemblies.ToArray();
+        return [.. assemblies];
     }
 
     /// <summary>

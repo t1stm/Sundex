@@ -5,22 +5,16 @@ using Sundex.Engine.Renderer.Buffers;
 
 namespace Sundex.Engine.Text;
 
-public class TextBuffer : IRenderable, IClippable, IDisposable
+public class TextBuffer(ITextProvider provider) : IRenderable, IClippable, IDisposable
 {
-    public readonly GpuBuffer<TextCharacter>.WithCPUCache Characters;
-    public readonly ITextProvider TextProvider;
+    public readonly GpuBuffer<TextCharacter>.WithCPUCache Characters = new(BufferUsage.Vertex);
+    public readonly ITextProvider TextProvider = provider;
 
     private readonly List<Range> _freeRanges = [];
     private readonly Dictionary<TextSlice, Range> _usedRanges = [];
 
     private int _currentOffset;
     private bool _disposing;
-
-    public TextBuffer(ITextProvider provider)
-    {
-        Characters = new GpuBuffer<TextCharacter>.WithCPUCache(BufferUsage.Vertex);
-        TextProvider = provider;
-    }
 
     /// <inheritdoc />
     public Vector4i? ClipRect { get; set; }

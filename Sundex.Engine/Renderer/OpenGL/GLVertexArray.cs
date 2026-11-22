@@ -34,7 +34,7 @@ internal sealed class GLVertexArray : GLResource
             var layout = layouts[slot];
             foreach (var element in layout.GetElements())
             {
-                var offset = (IntPtr)element.Offset;
+                var offset = (nint)element.Offset;
                 var stride = layout.GetStride();
                 switch (element.Format)
                 {

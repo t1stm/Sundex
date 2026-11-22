@@ -4,7 +4,6 @@ using Sundex.Components.Abstractions;
 using Sundex.Components.Abstractions.Values;
 using Sundex.Components.Panels;
 using Sundex.Engine.Renderer.Abstract;
-using Sundex.Engine.Renderer.Cameras;
 
 namespace Sundex.Components.Tests;
 

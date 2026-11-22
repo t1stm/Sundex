@@ -24,6 +24,9 @@ public class ShaderPool(ILogger logger, AssetProvider assetProvider)
     ///     The pure location of the shader without the extension. Assumes that the shaders are named
     ///     with .vert and .frag
     /// </param>
+    /// <param name="layout">
+    ///     The layout of the shader
+    /// </param>
     /// <returns>A shader object loaded from the specified location</returns>
     public Shader GetOrLoad(string shaderLocation, ShaderLayout layout)
     {

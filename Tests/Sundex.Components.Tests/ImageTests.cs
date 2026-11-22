@@ -6,7 +6,6 @@ using Sundex.Components.Abstractions;
 using Sundex.Components.Abstractions.Values;
 using Sundex.Components.Panels;
 using Sundex.Core.Renderer.Planes;
-using Sundex.Engine;
 using Sundex.Engine.AssetManagement;
 using Sundex.Engine.AssetManagement.Types.Asset;
 using Sundex.Engine.Renderer.Textures;

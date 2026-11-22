@@ -17,7 +17,7 @@ internal sealed class GLTexture(GLGraphicsDevice device)
         if (blank)
         {
             GL.TexImage2D(TextureTarget.Texture2D, 0, Format(texture.Format), texture.Width, texture.Height,
-                0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+                0, PixelFormat.Rgba, PixelType.UnsignedByte, nint.Zero);
             Initialize(texture);
         }
 
@@ -44,9 +44,9 @@ internal sealed class GLTexture(GLGraphicsDevice device)
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0,
             TextureTarget.Texture2D, Handle, 0);
         var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
-        if (status != FramebufferStatus.FramebufferComplete)
-            throw new InvalidOperationException($"The render target framebuffer is incomplete: {status}.");
-        return _framebuffer;
+        return status != FramebufferStatus.FramebufferComplete
+            ? throw new InvalidOperationException($"The render target framebuffer is incomplete: {status}.")
+            : _framebuffer;
     }
 
     public override void Destroy()
@@ -59,7 +59,9 @@ internal sealed class GLTexture(GLGraphicsDevice device)
     private void Initialize(GPUTexture texture)
     {
         GL.TexParameteri(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel,
-            texture.MipmapMode == MipmapMode.Enabled ? (int)Math.Floor(Math.Log2(Math.Max(texture.Width, texture.Height))) : 0);
+            texture.MipmapMode == MipmapMode.Enabled
+                ? (int)Math.Floor(Math.Log2(Math.Max(texture.Width, texture.Height)))
+                : 0);
         Allocated = true;
     }
 

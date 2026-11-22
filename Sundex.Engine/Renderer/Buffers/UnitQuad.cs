@@ -14,11 +14,11 @@ public sealed class UnitQuad : IGamePreloadable
 
     public static void Preload(AssetProvider assetProvider)
     {
-        Positions = new(BufferUsage.Vertex);
+        Positions = new GpuBuffer<float>(BufferUsage.Vertex);
         Positions.SetData([0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0]);
-        PositionsWithUV = new(BufferUsage.Vertex);
+        PositionsWithUV = new GpuBuffer<float>(BufferUsage.Vertex);
         PositionsWithUV.SetData([0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0]);
-        Indices = new(BufferUsage.Index);
+        Indices = new GpuBuffer<int>(BufferUsage.Index);
         Indices.SetData([0, 1, 3, 1, 2, 3]);
     }
 }
