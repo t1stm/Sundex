@@ -46,8 +46,8 @@ jobs:
           dotnet build Sundex.slnx -c "$CONFIGURATION" -p:Version="$VERSION"
           dotnet test --solution Sundex.slnx -c "$CONFIGURATION" --no-build
           dotnet pack Sundex.slnx -c "$CONFIGURATION" --no-build -p:Version="$VERSION" -o artifacts
-          test "$(find artifacts -maxdepth 1 -name '*.nupkg' | wc -l)" -eq 10
-          test "$(find artifacts -maxdepth 1 -name '*.snupkg' | wc -l)" -eq 10
+          test "$(find artifacts -maxdepth 1 -name '*.nupkg' | wc -l)" -eq 11
+          test "$(find artifacts -maxdepth 1 -name '*.snupkg' | wc -l)" -eq 11
       - name: Install software OpenGL and Xvfb
         run: |
           sudo apt-get update

@@ -147,16 +147,17 @@ public class StyleParser(
     private IStyleValue ParseValue()
     {
         SkipWhitespaceAndComments();
+        var start = _pos;
         if (Check('"'))
         {
             var text = ReadString();
-            if (text.StartsWith('#')) return new ColorValue(text);
+            if (text.StartsWith('#')) return Color(start, text);
             return new StringValue(text);
         }
 
         if (char.IsDigit(Peek()) || Peek() == '-') return ParseNumber();
         if (Peek() == '$') return ParseVariableReference();
-        if (Peek() == '#') return new ColorValue(ReadHexColor());
+        if (Peek() == '#') return Color(start, ReadHexColor());
         if (Peek() == '!') return ParseKeyword();
         if (Check('{')) return ParseNestedBlock();
         if (Check('[')) return ParseArrayOrMap();
@@ -171,9 +172,24 @@ public class StyleParser(
         };
     }
 
+    /// <summary>A colour, with a malformed one reported where it is written.</summary>
+    private ColorValue Color(int start, string text)
+    {
+        try
+        {
+            return new ColorValue(text);
+        }
+        catch (ArgumentException exception)
+        {
+            _pos = start;
+            throw CreateException(exception.Message);
+        }
+    }
+
     private void ParseVariable()
     {
         SkipWhitespaceAndComments();
+        var nameStart = _pos;
         var name = ReadIdentifier();
         SkipWhitespaceAndComments();
         Consume('=');
@@ -182,7 +198,11 @@ public class StyleParser(
         if (Check(';')) Advance();
 
         if (!_localVariables.Add(name))
+        {
+            // Point at the second declaration, not past it.
+            _pos = nameStart;
             throw CreateException($"Variable '{name}' is already defined in this file");
+        }
 
         // Plain assignment, so a local declaration may shadow one that came from an import.
         _sheet.Variables[name] = value;
@@ -359,7 +379,16 @@ public class StyleParser(
             _parsedImports[path] = imported;
 
             var importedParser = new StyleParser(fileLoader(path), fileLoader, _parsedImports);
-            importedParser.ParseSheet(imported);
+            try
+            {
+                importedParser.ParseSheet(imported);
+            }
+            catch (StyleParseException exception)
+            {
+                // Each file on the way out adds its import, so the chain reads from the outer file in.
+                exception.Imports.Insert(0, path);
+                throw;
+            }
         }
 
         // Blocks and variables are merged at most once per path, independently: an aliased import
@@ -463,9 +492,9 @@ public class StyleParser(
         var stringified = slice.ToString();
 
         stringified = stringified.Insert(normalizedPosition, "<--- HERE");
-        return new Exception(message + ".\n" +
-                             "=== SOURCE CODE===\n\n" +
-                             stringified);
+        return new StyleParseException(message, errorPosition, message + ".\n" +
+                                                               "=== SOURCE CODE===\n\n" +
+                                                               stringified);
     }
 
     private void Consume(char expected)

@@ -8,6 +8,7 @@
   <Project Path="Sundex.Reactive/Sundex.Reactive.csproj" />
   <Project Path="Sundex.Slug/Sundex.Slug.csproj" />
   <Project Path="Sundex.Style.DSL/Sundex.Style.DSL.csproj" />
+  <Project Path="Sundex.Style.LanguageServer/Sundex.Style.LanguageServer.csproj" />
   <Project Path="Sundex.Testing/Sundex.Testing.csproj" />
   <Folder Name="/Debug/">
     <Project Path="Debug/Sundex.Engine.DummyProject/Sundex.Engine.DummyProject.csproj" />

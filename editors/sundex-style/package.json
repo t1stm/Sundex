@@ -1,0 +1,48 @@
+{
+  "name": "sundex-style",
+  "displayName": "Sundex Style",
+  "description": "Highlighting and live checks for Sundex .snx.ss stylesheets.",
+  "version": "0.1.0",
+  "publisher": "sundex",
+  "license": "Unlicense",
+  "repository": { "type": "git", "url": "https://github.com/t1stm/Sundex" },
+  "engines": { "vscode": "^1.90.0" },
+  "categories": ["Programming Languages", "Linters"],
+  "main": "./extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "sundex-style",
+        "aliases": ["Sundex Style"],
+        "extensions": [".snx.ss"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "sundex-style",
+        "scopeName": "source.sundex-style",
+        "path": "./syntaxes/sundex-style.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "Sundex Style",
+      "properties": {
+        "sundexStyle.server.command": {
+          "type": "string",
+          "default": "sundex-style-ls",
+          "description": "The language server to run: the installed dotnet tool, or `dotnet` with the path to its dll in the arguments."
+        },
+        "sundexStyle.server.args": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Arguments for the language server command."
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "vscode-languageclient": "9.0.1"
+  }
+}

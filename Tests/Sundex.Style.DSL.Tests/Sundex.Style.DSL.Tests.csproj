@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Sundex.Style.DSL\Sundex.Style.DSL.csproj"/>
+    <ProjectReference Include="..\..\Sundex.Style.LanguageServer\Sundex.Style.LanguageServer.csproj"/>
   </ItemGroup>
 
   <ItemGroup>

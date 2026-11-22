@@ -5,3 +5,5 @@ artifacts/
 .vs/
 .idea/
 *.user
+node_modules/
+*.vsix
