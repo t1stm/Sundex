@@ -57,8 +57,7 @@ public class FlexPanel : Panel, IPositioningElement
     public FlexPanel(UIContext context) : base(context)
     {
         // Content-sized unless told otherwise, like a CSS box.
-        Width = LiteralOrComputable.AutoSize;
-        Height = LiteralOrComputable.AutoSize;
+        SetInitialSize(LiteralOrComputable.AutoSize, LiteralOrComputable.AutoSize);
     }
 
     public override string Tag => "flex";
@@ -311,14 +310,10 @@ public class FlexPanel : Panel, IPositioningElement
             if (Math.Abs(before - _scrollY) > 0.01f) return true;
         }
 
-        if (ScrollsX && MaxScrollX > 0 && (!ScrollXRequiresShift || Context.ShiftDown))
-        {
-            var before = _scrollX;
-            ScrollX -= (scrollDelta.X != 0 ? scrollDelta.X : scrollDelta.Y) * 96;
-            if (Math.Abs(before - _scrollX) > 0.01f) return true;
-        }
-
-        return false;
+        if (!ScrollsX || MaxScrollX <= 0 || (ScrollXRequiresShift && !Context.ShiftDown)) return false;
+        var beforeX = _scrollX;
+        ScrollX -= (scrollDelta.X != 0 ? scrollDelta.X : scrollDelta.Y) * 96;
+        return Math.Abs(beforeX - _scrollX) > 0.01f;
     }
 
     public override bool HandlePress(float x, float y)
@@ -501,10 +496,10 @@ public class FlexPanel : Panel, IPositioningElement
             ? Wrap ? ArrangeRowWrap(flow, innerW, innerH, commit) : ArrangeRow(flow, innerW, innerH, commit)
             : Wrap ? ArrangeColumnWrap(flow, innerW, innerH, commit) : ArrangeColumn(flow, innerW, innerH, commit);
 
-        if (commit)
-            foreach (var child in placed)
-                PlaceAbsolute(child, Math.Max(0, width),
-                    float.IsInfinity(height) ? contentHeight + InsetTop + InsetBottom : height);
+        if (!commit) return (contentWidth, contentHeight);
+        foreach (var child in placed)
+            PlaceAbsolute(child, Math.Max(0, width),
+                float.IsInfinity(height) ? contentHeight + InsetTop + InsetBottom : height);
 
         return (contentWidth, contentHeight);
     }
@@ -616,39 +611,44 @@ public class FlexPanel : Panel, IPositioningElement
         // a flex container. Growing fills a width the row was given; it doesn't ask for one.
         var natural = used;
         var free = scrolls ? Math.Max(0, innerW - used) : capW - used;
-        if (free > 0 && growth > 0)
+        switch (free)
         {
-            for (var index = 0; index < itemCount; index++)
+            case > 0 when growth > 0:
             {
-                var child = items[index];
-                if (child.Grow <= 0) continue;
-                var grown = sizes[index] + free * child.Grow / growth;
-                var clamped = Clamp(grown, child.MinWidth, child.MaxWidth, innerW);
-                used += clamped - sizes[index];
-                sizes[index] = clamped;
-            }
-
-            free = capW - used;
-        }
-        else if (free < 0 && !scrolls)
-        {
-            // Only what may collapse gives way, the way min-width: auto keeps everything else whole.
-            float weight = 0;
-            for (var index = 0; index < itemCount; index++)
-                if (items[index].CanCollapseX)
-                    weight += items[index].Shrink * sizes[index];
-            if (weight > 0)
                 for (var index = 0; index < itemCount; index++)
                 {
                     var child = items[index];
-                    if (!child.CanCollapseX) continue;
-                    var cut = -free * child.Shrink * sizes[index] / weight;
-                    var next = Math.Max(sizes[index] - cut, Math.Max(child.MinWidth, 0));
-                    used += next - sizes[index];
-                    sizes[index] = next;
+                    if (child.Grow <= 0) continue;
+                    var grown = sizes[index] + free * child.Grow / growth;
+                    var clamped = Clamp(grown, child.MinWidth, child.MaxWidth, innerW);
+                    used += clamped - sizes[index];
+                    sizes[index] = clamped;
                 }
 
-            free = capW - used;
+                free = capW - used;
+                break;
+            }
+            case < 0 when !scrolls:
+            {
+                // Only what may collapse gives way, the way min-width: auto keeps everything else whole.
+                float weight = 0;
+                for (var index = 0; index < itemCount; index++)
+                    if (items[index].CanCollapseX)
+                        weight += items[index].Shrink * sizes[index];
+                if (weight > 0)
+                    for (var index = 0; index < itemCount; index++)
+                    {
+                        var child = items[index];
+                        if (!child.CanCollapseX) continue;
+                        var cut = -free * child.Shrink * sizes[index] / weight;
+                        var next = Math.Max(sizes[index] - cut, Math.Max(child.MinWidth, 0));
+                        used += next - sizes[index];
+                        sizes[index] = next;
+                    }
+
+                free = capW - used;
+                break;
+            }
         }
 
         // Cross sizes come after the widths: what wraps needs its width to know its height.
@@ -910,35 +910,40 @@ public class FlexPanel : Panel, IPositioningElement
 
         if (!float.IsInfinity(capH)) used += Share(items, sizes, false, capH - used, mainRef);
         var free = float.IsInfinity(capH) ? 0 : capH - used;
-        if (free > 0 && growth > 0)
+        switch (free)
         {
-            for (var index = 0; index < itemCount; index++)
+            case > 0 when growth > 0:
             {
-                var child = items[index];
-                if (child.Grow <= 0) continue;
-                var grown = sizes[index] + free * child.Grow / growth;
-                var clamped = Clamp(grown, child.MinHeight, child.MaxHeight, mainRef);
-                used += clamped - sizes[index];
-                sizes[index] = clamped;
-            }
-        }
-        else if (free < 0)
-        {
-            // A column squeezes what scrolls or may collapse: the pane between two fixed rows.
-            float weight = 0;
-            for (var index = 0; index < itemCount; index++)
-                if (items[index].CanCollapseY)
-                    weight += items[index].Shrink * sizes[index];
-            if (weight > 0)
                 for (var index = 0; index < itemCount; index++)
                 {
                     var child = items[index];
-                    if (!child.CanCollapseY) continue;
-                    var cut = -free * child.Shrink * sizes[index] / weight;
-                    var next = Math.Max(sizes[index] - cut, Math.Max(child.MinHeight, 0));
-                    used += next - sizes[index];
-                    sizes[index] = next;
+                    if (child.Grow <= 0) continue;
+                    var grown = sizes[index] + free * child.Grow / growth;
+                    var clamped = Clamp(grown, child.MinHeight, child.MaxHeight, mainRef);
+                    used += clamped - sizes[index];
+                    sizes[index] = clamped;
                 }
+                break;
+            }
+            case < 0:
+            {
+                // A column squeezes what scrolls or may collapse: the pane between two fixed rows.
+                float weight = 0;
+                for (var index = 0; index < itemCount; index++)
+                    if (items[index].CanCollapseY)
+                        weight += items[index].Shrink * sizes[index];
+                if (weight > 0)
+                    for (var index = 0; index < itemCount; index++)
+                    {
+                        var child = items[index];
+                        if (!child.CanCollapseY) continue;
+                        var cut = -free * child.Shrink * sizes[index] / weight;
+                        var next = Math.Max(sizes[index] - cut, Math.Max(child.MinHeight, 0));
+                        used += next - sizes[index];
+                        sizes[index] = next;
+                    }
+                break;
+            }
         }
 
         if (!commit) return (maxW, used);
@@ -963,15 +968,17 @@ public class FlexPanel : Panel, IPositioningElement
             var marginLeft = ResolveMargin(child.MarginLeft, innerW);
             var available = innerW - marginLeft - ResolveMargin(child.MarginRight, innerW);
             var x = InsetLeft + marginLeft - _scrollX;
-            if (child.MarginLeft.Auto && child.MarginRight.Auto) x += (available - widths[index]) / 2;
-            else if (child.MarginLeft.Auto) x += available - widths[index];
-            else
-                x += AlignOf(child) switch
+            x += (child.MarginLeft.Auto, child.MarginRight.Auto) switch
+            {
+                (true, true) => (available - widths[index]) / 2,
+                (true, false) => available - widths[index],
+                _ => AlignOf(child) switch
                 {
                     Align.Center => (available - widths[index]) / 2,
                     Align.End => available - widths[index],
                     _ => 0
-                };
+                }
+            };
 
             PlaceChild(child, x + child.TranslateX, y + child.TranslateY, widths[index], sizes[index]);
             y += sizes[index] + ResolveMargin(child.MarginBottom, innerW) + RowGap + between;

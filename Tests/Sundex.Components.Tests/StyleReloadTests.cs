@@ -31,6 +31,7 @@ public class StyleReloadTests : IDisposable
     public void Dispose()
     {
         UIElement.TrackPristineStyles = _tracked;
+        GC.SuppressFinalize(this);
     }
 
     private static Vector4 FillOf(Panel panel)

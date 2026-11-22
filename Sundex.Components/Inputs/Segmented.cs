@@ -12,7 +12,7 @@ namespace Sundex.Components.Inputs;
 ///     value) holding a <c>segment-text</c> label, all styled by the control's own sheet.
 /// </summary>
 [MarkupTag("segmented")]
-public class Segmented : FlexPanel
+public sealed class Segmented : FlexPanel
 {
     private readonly List<(string Value, Button Button, Label Label)> _segments = [];
 

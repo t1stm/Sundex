@@ -36,10 +36,6 @@ public class WrapLineTests
         var row = new FlexPanel(ctx) { Width = 900, Wrap = true, AlignItems = Align.Center, Gap = 8 };
         row.AddChild(new FlexPanel(ctx) { Width = 320, Height = 42, Grow = 1, MaxWidth = 320 });
         var actions = new FlexPanel(ctx) { Wrap = true, AlignItems = Align.Start };
-        Tooltip Tipped(string text) => new(ctx)
-        {
-            Children = [new Button(ctx, text) { PaddingLeft = 10, PaddingRight = 10, MinHeight = 28, MarginRight = 4, MarginBottom = 2 }]
-        };
         var set = Tipped("Set");
         var clear = Tipped("Clear");
         actions.AddChild(set);
@@ -50,5 +46,11 @@ public class WrapLineTests
         row.Layout();
 
         Assert.Equal(set.Computed.Y, clear.Computed.Y, 1);
+        return;
+
+        Tooltip Tipped(string text) => new(ctx)
+        {
+            Children = [new Button(ctx, text) { PaddingLeft = 10, PaddingRight = 10, MinHeight = 28, MarginRight = 4, MarginBottom = 2 }]
+        };
     }
 }

@@ -288,17 +288,16 @@ internal sealed class Emitter
         Line($"var {instance} = new global::{className}(Sundex);");
         foreach (var attribute in node.Attributes)
         {
-            if (attribute.Name is "id" or "class" or "slot") continue;
-            if (attribute.Name == "ref")
+            switch (attribute.Name)
             {
-                Line($"{attribute.Value} = {instance};");
-                continue;
-            }
-
-            if (attribute.Name.StartsWith("on.", StringComparison.Ordinal))
-            {
-                EmitComponentEvent(instance, component, attribute);
-                continue;
+                case "id" or "class" or "slot":
+                    continue;
+                case "ref":
+                    Line($"{attribute.Value} = {instance};");
+                    continue;
+                case var name when name.StartsWith("on.", StringComparison.Ordinal):
+                    EmitComponentEvent(instance, component, attribute);
+                    continue;
             }
 
             var prop = component.Props.FirstOrDefault(candidate => candidate.Name == attribute.Name);
@@ -645,14 +644,16 @@ internal sealed class Emitter
         var pascal = MarkupDocument.Pascal(attribute);
         IPropertySymbol? byName = null;
         for (var current = type; current != null; current = current.BaseType)
-        foreach (var member in current.GetMembers().OfType<IPropertySymbol>())
         {
-            if (member.DeclaredAccessibility != Accessibility.Public || member.IsStatic) continue;
-            foreach (var attributeData in member.GetAttributes())
-                if (attributeData.AttributeClass?.Name == "NamedSettingAttribute" &&
-                    attributeData.ConstructorArguments.Length > 0 && attributeData.ConstructorArguments[0].Value as string == attribute)
-                    return member;
-            if (byName == null && string.Equals(member.Name, pascal, StringComparison.OrdinalIgnoreCase)) byName = member;
+            foreach (var member in current.GetMembers().OfType<IPropertySymbol>())
+            {
+                if (member.DeclaredAccessibility != Accessibility.Public || member.IsStatic) continue;
+                foreach (var attributeData in member.GetAttributes())
+                    if (attributeData.AttributeClass?.Name == "NamedSettingAttribute" &&
+                        attributeData.ConstructorArguments.Length > 0 && attributeData.ConstructorArguments[0].Value as string == attribute)
+                        return member;
+                if (byName == null && string.Equals(member.Name, pascal, StringComparison.OrdinalIgnoreCase)) byName = member;
+            }
         }
 
         return byName;
@@ -661,9 +662,11 @@ internal sealed class Emitter
     private static ISymbol? FindMember(INamedTypeSymbol type, string name)
     {
         for (var current = type; current != null; current = current.BaseType)
-        foreach (var member in current.GetMembers(name))
-            if (member.DeclaredAccessibility == Accessibility.Public && member is IPropertySymbol or IEventSymbol)
-                return member;
+        {
+            foreach (var member in current.GetMembers(name))
+                if (member.DeclaredAccessibility == Accessibility.Public && member is IPropertySymbol or IEventSymbol)
+                    return member;
+        }
         return null;
     }
 
@@ -694,15 +697,11 @@ internal sealed class Emitter
             return Quote(raw);
 
         var full = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-        if (type.TypeKind == TypeKind.Enum)
-        {
-            var wanted = MarkupDocument.Pascal(raw);
-            var member = type.GetMembers().OfType<IFieldSymbol>()
-                .FirstOrDefault(field => string.Equals(field.Name, wanted, StringComparison.OrdinalIgnoreCase));
-            return member == null ? null : $"{full}.{member.Name}";
-        }
-
-        return $"{Runtime}.Parse<{full}>({Quote(raw)})";
+        if (type.TypeKind != TypeKind.Enum) return $"{Runtime}.Parse<{full}>({Quote(raw)})";
+        var wanted = MarkupDocument.Pascal(raw);
+        var member = type.GetMembers().OfType<IFieldSymbol>()
+            .FirstOrDefault(field => string.Equals(field.Name, wanted, StringComparison.OrdinalIgnoreCase));
+        return member == null ? null : $"{full}.{member.Name}";
     }
 
     // ── Text ──────────────────────────────────────────────────────────────────────────────────
@@ -714,8 +713,14 @@ internal sealed class Emitter
         var depth = 0;
         for (var index = 0; index < text.Length; index++)
         {
-            if (text[index] == '{') depth++;
-            else if (text[index] == '}' && --depth == 0 && index != text.Length - 1) return false;
+            switch (text[index])
+            {
+                case '{':
+                    depth++;
+                    break;
+                case '}' when --depth == 0 && index != text.Length - 1:
+                    return false;
+            }
         }
 
         return depth == 0;
@@ -779,26 +784,25 @@ internal sealed class Emitter
         for (var index = 0; index < hole.Length; index++)
         {
             var character = hole[index];
-            if (character == '"' || character == '\'')
+            switch (character)
             {
-                for (index++; index < hole.Length && hole[index] != character; index++)
-                    if (hole[index] == '\\') index++;
-                continue;
-            }
-
-            if (character is '(' or '[' or '{') depth++;
-            else if (character is ')' or ']' or '}') depth--;
-            else if (depth == 0 && character == '?' && (index + 1 >= hole.Length || hole[index + 1] is not ('.' or '?' or '[')) && (index == 0 || hole[index - 1] != '?'))
-                ternaries++;
-            else if (depth == 0 && character == ':' && (index + 1 >= hole.Length || hole[index + 1] != ':') && (index == 0 || hole[index - 1] != ':'))
-            {
-                if (ternaries > 0)
-                {
-                    ternaries--;
+                case '"' or '\'':
+                    for (index++; index < hole.Length && hole[index] != character; index++)
+                        if (hole[index] == '\\') index++;
                     continue;
-                }
-
-                return (hole.Substring(0, index).Trim(), hole.Substring(index));
+                case '(' or '[' or '{':
+                    depth++;
+                    break;
+                case ')' or ']' or '}':
+                    depth--;
+                    break;
+                case '?' when depth == 0 && (index + 1 >= hole.Length || hole[index + 1] is not ('.' or '?' or '[')) && (index == 0 || hole[index - 1] != '?'):
+                    ternaries++;
+                    break;
+                case ':' when depth == 0 && (index + 1 >= hole.Length || hole[index + 1] != ':') && (index == 0 || hole[index - 1] != ':'):
+                    if (ternaries <= 0) return (hole.Substring(0, index).Trim(), hole.Substring(index));
+                    ternaries--;
+                    break;
             }
         }
 

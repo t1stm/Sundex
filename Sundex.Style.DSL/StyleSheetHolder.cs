@@ -28,9 +28,9 @@ public class StyleSheetHolder
         MergeDictionary(Classes, other.Classes);
         MergeDictionary(IDTags, other.IDTags);
         foreach (var name in other.FullOverrides) FullOverrides.Add(name);
-        if (includeVariables)
-            foreach (var (name, value) in other.Variables)
-                Variables[name] = value;
+        if (!includeVariables) return;
+        foreach (var (name, value) in other.Variables)
+            Variables[name] = value;
     }
 
     private static void MergeDictionary(Dictionary<string, Dictionary<string, IStyleValue>> target,

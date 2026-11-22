@@ -32,6 +32,7 @@ public class GpuBufferListTests
         return list;
     }
 
+    /// <param name="list">The list whose slots get references.</param>
     /// <param name="backToFront">
     ///     Which order the reference map ends up holding them in - the two shift directions
     ///     each fall over on one of the two, so a test picks the one that bites.

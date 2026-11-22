@@ -27,6 +27,7 @@ public sealed class MoaiScene(Game game) : Scene(game)
     private UIElement _overlay = null!;
     private Vector2 _scale = Vector2.One;
     private IDisposable? _resultsTimer;
+    private bool _initialized;
 
     public override void Initialize(InitArguments initArguments)
     {
@@ -36,7 +37,9 @@ public sealed class MoaiScene(Game game) : Scene(game)
             Crashed = EndRun
         };
         _state.Again = StartRun;
+        _camera = new UICamera(Vector3.Zero, Game.ClientSize);
         BuildOverlay();
+        _initialized = true;
         Resize(Game.FramebufferSize.X, Game.FramebufferSize.Y);
     }
 
@@ -65,7 +68,7 @@ public sealed class MoaiScene(Game game) : Scene(game)
     public override void Resize(int width, int height)
     {
         // A resize can reach a loaded scene before it initializes.
-        if (_ui == null) return;
+        if (!_initialized) return;
         if (Game.TryGetScreenScale(out var scaleX, out var scaleY)) _scale = new Vector2(scaleX, scaleY);
         _camera.Viewport = new Vector2i((int)(width / _scale.X), (int)(height / _scale.Y));
         _camera.UpdateMatrix();
@@ -127,7 +130,6 @@ public sealed class MoaiScene(Game game) : Scene(game)
 
     private void BuildOverlay()
     {
-        _camera ??= new UICamera(Vector3.Zero, Game.ClientSize);
         _ui = new UIContext { Camera = _camera };
         _overlay = new Overlay(new SundexContext<GameState>(_ui, _state)).Create();
         _overlay.DrawTo(_ui);

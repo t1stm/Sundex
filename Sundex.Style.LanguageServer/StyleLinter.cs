@@ -2,11 +2,12 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using Sundex.Components.Abstractions;
 using Sundex.Components.Attributes;
+using Sundex.Style.DSL;
 using Sundex.Style.DSL.Abstract;
 using Sundex.Style.DSL.Abstract.Values;
 using Sundex.Style.DSL.Abstract.Values.Keywords;
 
-namespace Sundex.Style.DSL.LanguageServer;
+namespace Sundex.Style.LanguageServer;
 
 /// <summary>A problem in a stylesheet, zero-based like the language server protocol.</summary>
 public readonly record struct StyleDiagnostic(int Line, int Column, int Length, bool IsError, string Message);

@@ -65,6 +65,11 @@ public sealed class LabelBatch : IRenderable, IClippable
     ///     when one of them actually changed - the views re-assign every slot on every
     ///     layout pass.
     /// </summary>
+    /// <param name="index">The caption's slot in the batch.</param>
+    /// <param name="text">The caption's text.</param>
+    /// <param name="x">The caption's left edge, in absolute UI units.</param>
+    /// <param name="y">The caption's top edge, in absolute UI units.</param>
+    /// <param name="color">The caption's colour.</param>
     /// <param name="clip">
     ///     Box this caption's pixels are confined to, in the same absolute UI units as
     ///     <paramref name="x" />/<paramref name="y" />: (left, top, right, bottom).

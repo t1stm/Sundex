@@ -8,7 +8,7 @@ namespace Sundex.Components.Panels;
 ///     the rest. <see cref="Open" /> can be bound both ways.
 /// </summary>
 [MarkupTag("details")]
-public class Details : FlexPanel
+public sealed class Details : FlexPanel
 {
     public Details(UIContext context) : base(context)
     {

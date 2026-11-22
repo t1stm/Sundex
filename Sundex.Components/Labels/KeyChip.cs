@@ -11,6 +11,7 @@ namespace Sundex.Components.Labels;
 /// </summary>
 public static class KeyChip
 {
+    /// <param name="button">The button the chip is added to; returned for chaining.</param>
     /// <param name="key">The key's name ("Esc", "Enter"), or a glyph when <paramref name="font" /> is set.</param>
     /// <param name="font">The chip label's font, e.g. Icons.Font for a "+" glyph instead of a key.</param>
     public static T Add<T>(T button, string key, string? font = null) where T : Button

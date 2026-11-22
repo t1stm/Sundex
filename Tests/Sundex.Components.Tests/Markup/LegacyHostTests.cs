@@ -36,12 +36,12 @@ public class LegacyHostTests
                                 </sundex>
                                 """;
 
-    private static (SundexContext<TestAppContext> Sundex, TestAppContext App, SundexComponent Host) Build()
+    private static (TestAppContext App, SundexComponent Host) Build()
     {
         var app = new TestAppContext();
         var sundex = new SundexContext<TestAppContext>(new TestUIContext(), app);
         sundex.RegisterElementFactory(Counter.MarkupTag, _ => new Counter(sundex).Create());
-        return (sundex, app, sundex.NewComponent(Host));
+        return (app, sundex.NewComponent(Host));
     }
 
     private static IEnumerable<UIElement> All(UIElement root)
@@ -65,7 +65,7 @@ public class LegacyHostTests
     [Fact]
     public void TheComponentKeepsItsOwnSheet_AndTheHostsStylesItsOwnElements()
     {
-        var (_, _, host) = Build();
+        var (_, host) = Build();
         var hosted = host.GetID<UIElement>("hosted");
 
         Assert.Equal(11, host.GetID<Label>("host-label").FontSizePx.Value);
@@ -81,7 +81,7 @@ public class LegacyHostTests
     [Fact]
     public void ReloadingTheHostsSheetLeavesTheComponentAlone()
     {
-        var (_, _, host) = Build();
+        var (_, host) = Build();
         var hosted = host.GetID<UIElement>("hosted");
 
         host.ReloadStyleSheet();
@@ -95,7 +95,7 @@ public class LegacyHostTests
     [Fact]
     public void TheComponentSitsInTheHostsLayout_WithTheUseSitesAttributes()
     {
-        var (_, _, host) = Build();
+        var (_, host) = Build();
         var root = (FlexPanel)host.Element;
         var hosted = host.GetID<UIElement>("hosted");
 
@@ -111,7 +111,7 @@ public class LegacyHostTests
     [Fact]
     public void DisposingTheHostsTreeEndsTheComponentsBindings()
     {
-        var (_, app, host) = Build();
+        var (app, host) = Build();
         var hosted = host.GetID<UIElement>("hosted");
         var greeting = All(hosted).OfType<Label>().Single(label => label.Classes.Contains("greeting"));
         Assert.NotEmpty(app.Greeting.Observers);

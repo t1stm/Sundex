@@ -377,11 +377,9 @@ public sealed class FileSelection : FlexPanel
         else if (File.Exists(path) && Path.GetDirectoryName(path) is { } folder)
         {
             NavigateTo(folder);
-            if (ExtensionFilter == null || path.EndsWith(ExtensionFilter, StringComparison.OrdinalIgnoreCase))
-            {
-                SelectFile(path);
-                _reveal = _rows.ElementAtOrDefault(_cursor);
-            }
+            if (ExtensionFilter != null && !path.EndsWith(ExtensionFilter, StringComparison.OrdinalIgnoreCase)) return;
+            SelectFile(path);
+            _reveal = _rows.ElementAtOrDefault(_cursor);
         }
         else
         {
@@ -423,9 +421,6 @@ public sealed class FileSelection : FlexPanel
         if (_reveal is not { } row) return;
         _reveal = null;
 
-        // Measured rather than read off the laid-out rows: right after a folder opens, the list
-        // hasn't placed its new rows yet.
-        float Height(UIElement child) => child.Measure(_list.Computed.Width, _list.Computed.Height).height;
         float top = 0;
         foreach (var child in _list.Children)
         {
@@ -441,6 +436,11 @@ public sealed class FileSelection : FlexPanel
         // notice, so the list would stay marked with nothing above it to reach it, and later
         // changes in it (the highlight) wouldn't show. Lay it out now instead.
         _list.Layout();
+        return;
+
+        // Measured rather than read off the laid-out rows: right after a folder opens, the list
+        // hasn't placed its new rows yet.
+        float Height(UIElement child) => child.Measure(_list.Computed.Width, _list.Computed.Height).height;
     }
 
     private void NavigateTo(string path)
@@ -685,12 +685,9 @@ public sealed class FileSelection : FlexPanel
             if (home) crumb.Children.Add(new Label(Context, Icons.House, Icons.Font) { Classes = ["file-crumb-icon"] });
             crumb.Children.Add(new Label(Context, text)
                 { Classes = current ? ["file-crumb-label", "file-crumb-label-current"] : ["file-crumb-label"] });
-            if (!current)
-            {
-                crumb.UpdateCursorOnHover = true;
-                crumb.OnClick = _ => navigate(path);
-            }
-
+            if (current) return crumb;
+            crumb.UpdateCursorOnHover = true;
+            crumb.OnClick = _ => navigate(path);
             return crumb;
         }
 

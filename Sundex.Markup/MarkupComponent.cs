@@ -78,5 +78,6 @@ public abstract class MarkupComponent<TContext>(SundexContext<TContext> sundex) 
     {
         Scope?.Dispose();
         Root?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

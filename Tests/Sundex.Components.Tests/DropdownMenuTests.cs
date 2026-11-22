@@ -134,7 +134,7 @@ public class DropdownMenuTests
         Assert.Contains(menu, root.Children);
 
         // A fresh right-press outside the box does close it.
-        ctx.UpdatePointer(root, 800, 800, false, false, false, Vector2.Zero, false);
+        ctx.UpdatePointer(root, 800, 800, false, false, false, Vector2.Zero);
         ctx.UpdatePointer(root, 800, 800, false, false, false, Vector2.Zero, true);
         Assert.DoesNotContain(menu, root.Children);
     }

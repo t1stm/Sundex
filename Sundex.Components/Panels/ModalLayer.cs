@@ -23,8 +23,7 @@ public class ModalLayer : FlexPanel
 
     public ModalLayer(UIContext context) : base(context)
     {
-        Width = LiteralOrComputable.Percent(100);
-        Height = LiteralOrComputable.Percent(100);
+        SetInitialSize(LiteralOrComputable.Percent(100), LiteralOrComputable.Percent(100));
         HorizontalAlign = Align.Center;
         VerticalAlign = Align.Center;
         Background = new ColoredPlane { Color = new Vector4(0, 0, 0, 0.6f) };
@@ -45,6 +44,7 @@ public class ModalLayer : FlexPanel
     public override int Index
     {
         get => TopLayerIndex;
+        // ReSharper disable once ValueParameterNotUsed
         internal set
         {
             foreach (var child in Children) child.Index = TopLayerIndex + 1;

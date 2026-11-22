@@ -470,11 +470,11 @@ public class Image : Panel
         if (_loadingPlaceholder)
         {
             _loadingPlaceholder = false;
-            logger.Warning(failure, "The invalid-image placeholder failed to load.");
+            logger.Warning(failure, "The invalid-image placeholder failed to load");
             return;
         }
 
-        logger.Warning(failure, "Failed to load image {Src}.", Src);
+        logger.Warning(failure, "Failed to load image {Src}", Src);
 
         var failedSrc = Src;
         var failedStorage = Storage;

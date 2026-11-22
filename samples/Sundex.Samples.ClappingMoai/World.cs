@@ -371,13 +371,6 @@ public sealed class World : IDisposable
             Puff(_clouds[cloud * 3 + 2], x + width * 0.5f, y + 18 - small, small, small);
         }
 
-        void Puff(ColoredPlane puff, float x, float y, float width, float height)
-        {
-            puff.Color = cloudColor;
-            puff.BorderRadius = height / 2;
-            Place(puff, x, y, width, height);
-        }
-
         var islandColor = Vector4.Lerp(Hex(0x4a2a55ff), Hex(0x1a1433ff), night);
         for (var index = 0; index < _islands.Length; index++)
         {
@@ -449,6 +442,14 @@ public sealed class World : IDisposable
         }
 
         Place(_flash, -20, -20, _width + 40, Height + 40);
+        return;
+
+        void Puff(ColoredPlane puff, float x, float y, float width, float height)
+        {
+            puff.Color = cloudColor;
+            puff.BorderRadius = height / 2;
+            Place(puff, x, y, width, height);
+        }
     }
 
     /// <summary>Queues an embedded image for upload. The pixels must outlive the upload, so both live as long as the world.</summary>

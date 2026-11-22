@@ -28,8 +28,10 @@ public class Slider : ProgressBar
             foreground ?? new ColoredPlane { Color = new Vector4(1, 1, 1, 0.6f) })
     {
         UpdateCursorOnHover = true;
-        SecondaryPanel = NewPart(new Vector4(0, 0, 0, 0));
-        ThumbPanel = NewPart(new Vector4(1, 1, 1, 1));
+        // Into the fields: the setters number every part, and the thumb doesn't exist when the secondary is set.
+        _secondaryPanel = NewPart(new Vector4(0, 0, 0, 0));
+        _thumbPanel = NewPart(new Vector4(1, 1, 1, 1));
+        NumberParts();
     }
 
     public override string Tag => "slider";
@@ -79,8 +81,8 @@ public class Slider : ProgressBar
     [NamedSetting("secondary")]
     public Panel SecondaryPanel
     {
-        get;
-        set => SwapPart(ref field, value);
+        get => _secondaryPanel;
+        set => SwapPart(ref _secondaryPanel, value);
     }
 
     /// <summary>The dot, shown while the pointer is on the bar. 0 (the default) shows none.</summary>
@@ -94,9 +96,11 @@ public class Slider : ProgressBar
     [NamedSetting("thumb")]
     public Panel ThumbPanel
     {
-        get;
-        set => SwapPart(ref field, value);
+        get => _thumbPanel;
+        set => SwapPart(ref _thumbPanel, value);
     }
+
+    private Panel _secondaryPanel, _thumbPanel;
 
     /// <summary>How far one wheel notch moves the value; 0 (the default) leaves the wheel to what's behind.</summary>
     [NamedSetting("wheel-step")]
@@ -112,13 +116,19 @@ public class Slider : ProgressBar
         internal set
         {
             base.Index = value;
-            // ProgressBar numbers its panels when parented; a depth that changes later (a z-index
-            // above it) has to reach them too.
-            BackgroundPanel?.Index = value + 1;
-            SecondaryPanel?.Index = value + 2;
-            ForegroundPanel?.Index = value + 3;
-            ThumbPanel?.Index = value + 4;
+            NumberParts();
         }
+    }
+
+    // ProgressBar numbers its panels when parented; a depth that changes later (a z-index
+    // above it) has to reach them too.
+    private void NumberParts()
+    {
+        var index = Index;
+        BackgroundPanel.Index = index + 1;
+        SecondaryPanel.Index = index + 2;
+        ForegroundPanel.Index = index + 3;
+        ThumbPanel.Index = index + 4;
     }
 
     public override UIElement? Parent
@@ -129,7 +139,7 @@ public class Slider : ProgressBar
             base.Parent = value;
             SecondaryPanel.Parent = this;
             ThumbPanel.Parent = this;
-            Index = Index;
+            NumberParts();
         }
     }
 
@@ -144,9 +154,9 @@ public class Slider : ProgressBar
         var old = field;
         UpdateSetDirty(ref field, value);
         field.Parent = this;
-        Index = Index;
+        NumberParts();
         if (!Drawn || ReferenceEquals(old, value)) return;
-        old?.StopRendering();
+        old.StopRendering();
         if (ReferenceEquals(value, ThumbPanel) && !ThumbShown) return;
         value.DrawTo(Context);
     }

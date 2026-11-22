@@ -61,13 +61,11 @@ public class Game : GameWindow
         AssetProvider = new AssetProvider(Logger, [typeof(Game).Assembly, .. assemblies]);
         SceneManager = new SceneManager(Logger);
 
-        if (SundexDevelopment.Enabled)
-        {
-            // The IDE callback and file watcher run on their own threads. Rebuilding the UI
-            // touches GL objects, so reloads land on the render thread's frame queue.
-            HotReload.Requested = scope => Enqueue(game => game.SceneManager.Reload(scope));
-            _sourceWatcher = new SourceWatcher(Logger, AssetProvider.SourceRoots);
-        }
+        if (!SundexDevelopment.Enabled) return;
+        // The IDE callback and file watcher run on their own threads. Rebuilding the UI
+        // touches GL objects, so reloads land on the render thread's frame queue.
+        HotReload.Requested = scope => Enqueue(game => game.SceneManager.Reload(scope));
+        _sourceWatcher = new SourceWatcher(Logger, AssetProvider.SourceRoots);
     }
 
     public ILogger Logger { get; }

@@ -32,6 +32,8 @@ public class ComponentBuilderV1 : IComponentBuilder
         return CreateComponent(layout, context, true);
     }
 
+    /// <param name="layout">The parsed document to build.</param>
+    /// <param name="context">The context its elements and logic run in.</param>
     /// <param name="register">
     ///     False when building a usage site of an already-registered component: the rebuild
     ///     must not replace (or collide with) the registered template it was built from.

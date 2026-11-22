@@ -44,9 +44,9 @@ public partial class Panel(UIContext context) : UIElement(context), IColoredBack
             // Mirrors AddChild: replacing the list on an already-live panel must queue
             // the new children's renderables too, or they're hit-testable but invisible
             // until something else happens to re-run DrawTo on the tree.
-            if (Drawn)
-                foreach (var child in _children)
-                    child.DrawTo(Context);
+            if (!Drawn) return;
+            foreach (var child in _children)
+                child.DrawTo(Context);
         }
     }
 
@@ -93,16 +93,30 @@ public partial class Panel(UIContext context) : UIElement(context), IColoredBack
     [NamedSetting("direction")]
     public virtual LayoutDirection Direction
     {
-        get;
-        set => UpdateSetDirty(ref field, value);
-    } = LayoutDirection.Horizontal;
+        get => _direction;
+        set => UpdateSetDirty(ref _direction, value);
+    }
 
     [NamedSetting("padding")]
     public virtual float Padding
     {
-        get;
-        set => UpdateSetDirty(ref field, value);
-    } = 0;
+        get => _padding;
+        set => UpdateSetDirty(ref _padding, value);
+    }
+
+    private LayoutDirection _direction = LayoutDirection.Horizontal;
+    private float _padding;
+
+    /// <summary>
+    ///     For constructors: the direction and padding the panel starts with. Writes this class's storage
+    ///     instead of calling the virtual setters, so a subclass that overrides them keeps its own values.
+    ///     <see cref="FlexPanel" /> keeps its padding per side, so its subclasses set those instead.
+    /// </summary>
+    protected void SetInitialLayout(LayoutDirection? direction = null, float? padding = null)
+    {
+        if (direction is { } d) _direction = d;
+        if (padding is { } p) _padding = p;
+    }
 
     [NamedSetting("spacing")]
     public virtual float Spacing

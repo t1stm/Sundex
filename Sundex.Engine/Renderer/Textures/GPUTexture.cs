@@ -33,16 +33,19 @@ public class GPUTexture : IDisposable
         }
     }
 
-    /// <summary>Runs the queued uploads. The caller holds <see cref="Backing" />, which guards the queue.</summary>
+    /// <summary>Runs the queued uploads under <see cref="Backing" />, which guards the queue.</summary>
     internal bool Upload(ITextureUploader uploader)
     {
-        var changed = _uploads.Count > 0;
-        while (_uploads.TryPeek(out var upload))
+        lock (Backing)
         {
-            upload(uploader);
-            _uploads.Dequeue();
+            var changed = _uploads.Count > 0;
+            while (_uploads.TryPeek(out var upload))
+            {
+                upload(uploader);
+                _uploads.Dequeue();
+            }
+            return changed;
         }
-        return changed;
     }
 
     public void Dispose()

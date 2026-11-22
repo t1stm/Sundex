@@ -64,7 +64,7 @@ public class ShaderPool(ILogger logger, AssetProvider assetProvider)
             return shader;
 
         if (SundexDevelopment.Enabled)
-            _logger.Debug("Shader with name: '{ShaderName}' not found, invoking load function.", shaderLocation);
+            _logger.Debug("Shader with name: '{ShaderName}' not found, invoking load function", shaderLocation);
 
         var result = missingFunction.Invoke(assetProvider);
         alternativeLookup[shaderLocation] = result;

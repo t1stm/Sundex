@@ -57,11 +57,12 @@ public class Label : UIElement
     {
     }
 
+    /// <param name="context">The UI context the label belongs to.</param>
+    /// <param name="text">The label's text.</param>
     /// <param name="font">A bundled font's name (<c>FontProvider</c>), e.g. <see cref="Icons.Font" />; null for the interface font.</param>
     public Label(UIContext context, ReadOnlySpan<char> text, string? font = null) : base(context)
     {
-        Width = LiteralOrComputable.AutoSize;
-        Height = LiteralOrComputable.AutoSize;
+        SetInitialSize(LiteralOrComputable.AutoSize, LiteralOrComputable.AutoSize);
         _font = font;
         _raw = text.ToString().AsMemory();
         TextBuffer = new TextBuffer(ProviderFor(font));
@@ -459,8 +460,8 @@ public class Label : UIElement
             }
 
             // The text's own last space stays: a label followed by another in a row of words needs it.
-            if (paragraphIndex < paragraphs.Length - 1)
-                while (result.Length > lineStart && result[^1] == ' ') result.Length--;
+            if (paragraphIndex >= paragraphs.Length - 1) continue;
+            while (result.Length > lineStart && result[^1] == ' ') result.Length--;
         }
 
         return result.ToString();

@@ -14,7 +14,7 @@ namespace Sundex.Components.Panels;
 ///     on whatever was pressed, and a press on a button, a field or a slider inside a row stays theirs.
 /// </summary>
 [MarkupTag("reorder-list")]
-public class ReorderList : FlexPanel
+public sealed class ReorderList : FlexPanel
 {
     /// <summary>How far the pointer moves before a press becomes a drag.</summary>
     private const float Threshold = 6;
@@ -86,12 +86,15 @@ public class ReorderList : FlexPanel
     public override void HandlePointerDrag(float x, float y)
     {
         if (_row == null) return;
-        if (!_dragging && Math.Abs(y - _downY) < Threshold) return;
-        if (!_dragging)
+        switch (_dragging)
         {
-            _dragging = true;
-            _row.SetClass("dragging", true);
-            _row.ZIndex = 1;
+            case false when Math.Abs(y - _downY) < Threshold:
+                return;
+            case false:
+                _dragging = true;
+                _row.SetClass("dragging", true);
+                _row.ZIndex = 1;
+                break;
         }
 
         _row.TranslateY = y - _downY;
@@ -107,7 +110,6 @@ public class ReorderList : FlexPanel
     /// <summary>Where a row let go at <paramref name="y" /> lands: past every row whose middle it crossed.</summary>
     private int Landing(List<UIElement> rows, float y)
     {
-        float Middle(UIElement row) => row.Computed.AbsoluteY - (ReferenceEquals(row, _row) ? row.TranslateY : 0) + row.Computed.Height / 2;
         for (var at = 0; at < _from; at++)
             if (y < Middle(rows[at]))
                 return at;
@@ -115,6 +117,8 @@ public class ReorderList : FlexPanel
             if (y > Middle(rows[at]))
                 return at;
         return _from;
+
+        float Middle(UIElement row) => row.Computed.AbsoluteY - (ReferenceEquals(row, _row) ? row.TranslateY : 0) + row.Computed.Height / 2;
     }
 
     public override bool HandlePointerRelease(float x, float y)
@@ -129,13 +133,13 @@ public class ReorderList : FlexPanel
         if (!dragging)
         {
             // Not a drag: the click the press would have been, on what was pressed.
-            if (pressed != null && pressed.ContainsPoint(x, y))
-                for (var element = pressed; element != null; element = element.Parent)
-                    if (element.OnClick != null)
-                    {
-                        if (!element.Disabled) element.OnClick(element);
-                        break;
-                    }
+            if (pressed == null || !pressed.ContainsPoint(x, y)) return true;
+            for (var element = pressed; element != null; element = element.Parent)
+                if (element.OnClick != null)
+                {
+                    if (!element.Disabled) element.OnClick(element);
+                    break;
+                }
 
             return true;
         }

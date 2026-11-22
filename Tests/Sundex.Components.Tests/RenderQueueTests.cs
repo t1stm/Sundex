@@ -85,8 +85,7 @@ public class RenderQueueTests
 
         Assert.Equal(0, index);
         var queue = context.GetRenderQueue()[0];
-        Assert.Single(queue);
-        Assert.Same(renderable2, queue[0]);
+        Assert.Same(renderable2, Assert.Single(queue));
     }
 
     [Fact]
@@ -151,8 +150,7 @@ public class RenderQueueTests
         grandchild.TestHandleRenderableSwap(rOld, rNew);
 
         var queue = context.GetRenderQueue()[grandchild.GetIndex()];
-        Assert.Single(queue);
-        Assert.Same(rNew, queue[0]);
+        Assert.Same(rNew, Assert.Single(queue));
     }
 
     [Fact]
@@ -168,8 +166,7 @@ public class RenderQueueTests
         element.TestHandleRenderableSwap(null, first);
 
         var queue = context.GetRenderQueue()[element.GetIndex()];
-        Assert.Single(queue);
-        Assert.Same(first, queue[0]);
+        Assert.Same(first, Assert.Single(queue));
     }
 
     [Fact]
@@ -310,8 +307,7 @@ public class RenderQueueTests
 
         // If there were duplicates, the queue would be [hover, base]
         queue = context.GetRenderQueue()[5];
-        Assert.Single(queue);
-        Assert.Same(hoverBackground, queue[0]);
+        Assert.Same(hoverBackground, Assert.Single(queue));
     }
 
     [Fact]
@@ -354,8 +350,7 @@ public class RenderQueueTests
 
         // The new hover background is the queue's only entry.
         var queue = context.GetRenderQueue()[5];
-        Assert.Single(queue);
-        Assert.Same(hoverBackground, queue[0]);
+        Assert.Same(hoverBackground, Assert.Single(queue));
     }
 
     [Fact]

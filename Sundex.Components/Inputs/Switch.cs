@@ -12,7 +12,7 @@ namespace Sundex.Components.Inputs;
 ///     <see cref="KnobColor" /> are settings, so a sheet colours it.
 /// </summary>
 [MarkupTag("switch")]
-public class Switch : FlexPanel
+public sealed class Switch : FlexPanel
 {
     private const double SlideMs = 150;
     private readonly Panel _knob;
@@ -100,7 +100,7 @@ public class Switch : FlexPanel
         set
         {
             field = value;
-            _knob?.Fill = value;
+            _knob.Fill = value;
         }
     } = new(0.91f, 0.9f, 0.95f, 1);
 

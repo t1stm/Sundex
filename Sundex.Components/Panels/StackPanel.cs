@@ -92,7 +92,7 @@ public class StackPanel(UIContext context)
                 break;
             }
             default:
-                throw new ArgumentOutOfRangeException(nameof(Direction), "Invalid layout direction value.");
+                throw new InvalidOperationException($"Unknown layout direction {Direction}.");
         }
 
         var measuredW = explicitW ?? contentW + 2 * Padding;

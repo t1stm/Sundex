@@ -42,6 +42,14 @@ public class CoordinateContractTests
     [Fact]
     public void VerticalLayoutTablesDoNotMoveAGlyphOffItsBaseline()
     {
+        var plain = Ink("Golos-NoVertical");
+        var vertical = Ink("Golos-WithVertical");
+
+        Assert.Equal(plain.Top, vertical.Top, 4);
+        Assert.Equal(plain.Bottom, vertical.Bottom, 4);
+        Assert.InRange(plain.Bottom, -0.01, 0.01); // H stands on the baseline
+        return;
+
         static Bounds Ink(string font)
         {
             using var stream = TestFonts.Open(font);
@@ -49,13 +57,6 @@ public class CoordinateContractTests
             Assert.True(SlugFont.Load(stream).TryBuildShape("H", shape, out _));
             return shape.GetBounds();
         }
-
-        var plain = Ink("Golos-NoVertical");
-        var vertical = Ink("Golos-WithVertical");
-
-        Assert.Equal(plain.Top, vertical.Top, 4);
-        Assert.Equal(plain.Bottom, vertical.Bottom, 4);
-        Assert.InRange(plain.Bottom, -0.01, 0.01); // H stands on the baseline
     }
 
     [Fact]

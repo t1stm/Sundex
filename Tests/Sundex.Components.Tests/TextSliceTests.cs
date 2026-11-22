@@ -48,3 +48,25 @@ public class TextSliceTests
         }
     }
 }
+
+public class TextBufferThreadingTests
+{
+    [Fact]
+    public void SlicesTakenFromManyThreadsNeverShareCharacters()
+    {
+        var buffer = new TextBuffer(new MockTextProvider());
+        var slices = new System.Collections.Concurrent.ConcurrentBag<TextSlice>();
+        Parallel.For(0, 400, index =>
+        {
+            var slice = buffer.GetTextSlice("abcd");
+            // Every other slice goes back, so later ones reuse freed ranges.
+            if (index % 2 == 0) slice.Dispose();
+            else slices.Add(slice);
+        });
+
+        var taken = new HashSet<int>();
+        foreach (var slice in slices)
+            for (var index = slice.Offset; index < slice.Offset + 4; index++)
+                Assert.True(taken.Add(index), $"Character {index} belongs to two slices.");
+    }
+}

@@ -15,7 +15,7 @@ namespace Sundex.Components.Inputs;
 ///     is used internally for the toggle, don't overwrite it.
 /// </summary>
 [MarkupTag("checkbox")]
-public class Checkbox : StackPanel
+public sealed class Checkbox : StackPanel
 {
     private const float BoxSize = 18;
     private const float CheckInset = 4;

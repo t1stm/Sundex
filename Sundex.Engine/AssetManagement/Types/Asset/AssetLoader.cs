@@ -103,15 +103,13 @@ public class AssetLoader : IAssetLoader<AssetStream, AssetInfo>, IMetadataLoader
         // Source tree first: in Debug this is the file being edited, and resolving to it
         // rather than to the build-time copy in the assembly is what makes reloading the
         // UI without a rebuild possible. SourceRoots is empty in Release.
-        if (FindInSourceRoots(createInfo.Location, assetProvider.SourceRoots) is { } sourcePath)
-        {
-            createInfo.Location = sourcePath;
-            return CreateFromDisk(createInfo);
-        }
+        if (FindInSourceRoots(createInfo.Location, assetProvider.SourceRoots) is not { } sourcePath)
+            return ExistsOnDisk(createInfo.Location)
+                ? CreateFromDisk(createInfo)
+                : CreateFromAssemblies(createInfo, assetProvider.AssetAssemblies);
 
-        return ExistsOnDisk(createInfo.Location)
-            ? CreateFromDisk(createInfo)
-            : CreateFromAssemblies(createInfo, assetProvider.AssetAssemblies);
+        createInfo.Location = sourcePath;
+        return CreateFromDisk(createInfo);
     }
 
     /// <summary>
@@ -220,12 +218,9 @@ public class AssetLoader : IAssetLoader<AssetStream, AssetInfo>, IMetadataLoader
 
         // ponytail: drops everything at the ceiling rather than the least used. What's on screen
         // already has its texture, so it only pays again on its next load.
-        if (Interlocked.Add(ref _downloadedBytes, bytes.Length) > DownloadCacheLimit)
-        {
-            Downloads.Clear();
-            Interlocked.Exchange(ref _downloadedBytes, bytes.Length);
-        }
-
+        if (Interlocked.Add(ref _downloadedBytes, bytes.Length) <= DownloadCacheLimit) return bytes;
+        Downloads.Clear();
+        Interlocked.Exchange(ref _downloadedBytes, bytes.Length);
         return bytes;
     }
 }

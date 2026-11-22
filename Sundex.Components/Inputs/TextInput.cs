@@ -77,8 +77,8 @@ public class TextInput : Panel
 
         Focusable = true;
         Cursor = CursorType.Text;
-        Padding = 5;
-        Height = 32;
+        SetInitialLayout(padding: 5);
+        SetInitialSize(height: 32);
         _text = Sanitize(value);
         CaretIndex = _anchor = _text.Length;
     }
@@ -139,15 +139,20 @@ public class TextInput : Panel
     /// <summary>A multi-line box's vertical scroll, in pixels.</summary>
     public float ScrollY
     {
-        get;
+        get => _scrollY;
         set
         {
             var clamped = Math.Clamp(value, 0, MaxScrollY);
-            if (Math.Abs(field - clamped) < 0.01f) return;
-            field = clamped;
+            if (Math.Abs(_scrollY - clamped) < 0.01f) return;
+            _scrollY = clamped;
             InvalidateLayout();
         }
     }
+
+    private float _scrollY;
+
+    /// <summary>Clamps the scroll again, after the text or the box moved <see cref="MaxScrollY" />.</summary>
+    private void ClampScrollY() => ScrollY = _scrollY;
 
     /// <summary>Wraps to the box and takes Enter as a new line: a <c>&lt;textarea&gt;</c>.</summary>
     [NamedSetting("multiline")]
@@ -484,24 +489,18 @@ public class TextInput : Panel
         SetText(_text.Remove(SelectionStart, SelectionEnd - SelectionStart), SelectionStart);
     }
 
-    private bool AllowsCharacter(char character, string remaining, int position)
+    private bool AllowsCharacter(char character, string remaining, int position) => Filter switch
     {
-        switch (Filter)
+        TextInputFilter.None => true,
+        TextInputFilter.Integer or TextInputFilter.Decimal => character switch
         {
-            case TextInputFilter.None:
-                return true;
-
-            case TextInputFilter.Integer:
-            case TextInputFilter.Decimal:
-                if (char.IsAsciiDigit(character)) return true;
-                if (character == '-') return position == 0 && !remaining.Contains('-');
-                if (character == '.' && Filter == TextInputFilter.Decimal) return !remaining.Contains('.');
-                return false;
-
-            default:
-                return false;
-        }
-    }
+            >= '0' and <= '9' => true,
+            '-' => position == 0 && !remaining.Contains('-'),
+            '.' => Filter == TextInputFilter.Decimal && !remaining.Contains('.'),
+            _ => false
+        },
+        _ => false
+    };
 
     private void SetCaret(int index, bool extendSelection)
     {
@@ -552,7 +551,7 @@ public class TextInput : Panel
             var (_, caretY) = _label.CaretAt(CaretIndex);
             if (caretY + LineHeight - ScrollY > innerHeight) ScrollY = caretY + LineHeight - innerHeight;
             if (caretY - ScrollY < 0) ScrollY = caretY;
-            ScrollY = ScrollY;
+            ClampScrollY();
             return;
         }
 
@@ -627,7 +626,7 @@ public class TextInput : Panel
         _label.Y = -ScrollY;
         _placeholder.Y = 0;
         base.DoLayout();
-        ScrollY = ScrollY;
+        ClampScrollY();
 
         var textX = Computed.AbsoluteX + Padding;
         var textY = Computed.AbsoluteY + Padding - ScrollY;

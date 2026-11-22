@@ -1,6 +1,6 @@
 using System.Text;
 using System.Text.Json.Nodes;
-using Sundex.Style.DSL.LanguageServer;
+using Sundex.Style.LanguageServer;
 
 // sundex-style-ls: a language server for .snx.ss over stdio, or `--check <files…>` for a build or CI.
 if (args is ["--check", .. var files]) return Check(files);
@@ -163,8 +163,14 @@ internal sealed class Server
         while (true)
         {
             var next = _input.ReadByte();
-            if (next < 0) return null;
-            if (next == '\n') return line.ToString().TrimEnd('\r');
+            switch (next)
+            {
+                case < 0:
+                    return null;
+                case '\n':
+                    return line.ToString().TrimEnd('\r');
+            }
+
             line.Append((char)next);
         }
     }

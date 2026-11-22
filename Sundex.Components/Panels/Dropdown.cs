@@ -4,7 +4,7 @@ using Sundex.Components.Labels;
 namespace Sundex.Components.Panels;
 
 /// <summary>The visible menu box. Styled by <c>component dropdown { }</c>.</summary>
-public class Dropdown : FlexPanel
+public sealed class Dropdown : FlexPanel
 {
     public Dropdown(UIContext context) : base(context)
     {
@@ -52,7 +52,7 @@ public class DropdownItem : Button
 ///     (outside click, Escape via DialogHost) and blocks input to everything beneath while
 ///     open. The box flips to the other side of its anchor rather than leave the viewport.
 /// </summary>
-public class DropdownMenu : ModalLayer
+public sealed class DropdownMenu : ModalLayer
 {
     /// <summary>Gap between the cursor and the menu's near edge.</summary>
     private const float CursorGap = 2;
@@ -155,22 +155,26 @@ public class DropdownMenu : ModalLayer
         // near/far pair is its own box, so a flip right-aligns to it (or sits above it)
         // instead of jumping the button's width away.
         float nearX, farX, nearY, farY;
-        if (_anchorElement is { } anchor && _beside)
+        switch (_anchorElement)
         {
-            var box = anchor.Computed;
-            (nearX, farX) = (box.AbsoluteX + box.Width + CursorGap, box.AbsoluteX - CursorGap);
-            (nearY, farY) = (box.AbsoluteY, box.AbsoluteY + box.Height);
-        }
-        else if (_anchorElement is { } below)
-        {
-            var box = below.Computed;
-            (nearX, farX) = (box.AbsoluteX, box.AbsoluteX + box.Width);
-            (nearY, farY) = (box.AbsoluteY + box.Height, box.AbsoluteY);
-        }
-        else
-        {
-            (nearX, farX) = (_anchorX + CursorGap, _anchorX - CursorGap);
-            (nearY, farY) = (_anchorY, _anchorY);
+            case { } anchor when _beside:
+            {
+                var box = anchor.Computed;
+                (nearX, farX) = (box.AbsoluteX + box.Width + CursorGap, box.AbsoluteX - CursorGap);
+                (nearY, farY) = (box.AbsoluteY, box.AbsoluteY + box.Height);
+                break;
+            }
+            case { } below:
+            {
+                var box = below.Computed;
+                (nearX, farX) = (box.AbsoluteX, box.AbsoluteX + box.Width);
+                (nearY, farY) = (box.AbsoluteY + box.Height, box.AbsoluteY);
+                break;
+            }
+            default:
+                (nearX, farX) = (_anchorX + CursorGap, _anchorX - CursorGap);
+                (nearY, farY) = (_anchorY, _anchorY);
+                break;
         }
 
         // Children are positioned relative to this layer's own origin.

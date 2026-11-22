@@ -213,5 +213,8 @@ public static class MarkupRuntime
         public static readonly NullKey Instance = new();
     }
 
+    /// <summary>A repeated key told apart by where it repeats. Only its equality is used, as a dictionary key.</summary>
+    // ReSharper disable NotAccessedPositionalProperty.Local
     private sealed record DuplicateKey(object Key, int Index);
+    // ReSharper restore NotAccessedPositionalProperty.Local
 }

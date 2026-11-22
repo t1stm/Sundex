@@ -114,9 +114,6 @@ public class ButtonTests
         button.Classes.Add("base");
         button.Classes.Add("modifier");
 
-        static BlockValue Disabled(string cursor) =>
-            new(new Dictionary<string, IStyleValue> { ["cursor"] = new StringValue(cursor) });
-
         var holder = new StyleSheetHolder();
         holder.Classes["base"] = new Dictionary<string, IStyleValue> { ["state[disabled]"] = Disabled("Default") };
         holder.Classes["modifier"] = new Dictionary<string, IStyleValue> { ["state[disabled]"] = Disabled("Text") };
@@ -124,6 +121,10 @@ public class ButtonTests
 
         button.Disabled = true;
         Assert.Equal(CursorType.Text, button.Cursor);
+        return;
+
+        static BlockValue Disabled(string cursor) =>
+            new(new Dictionary<string, IStyleValue> { ["cursor"] = new StringValue(cursor) });
     }
 
     [Theory]

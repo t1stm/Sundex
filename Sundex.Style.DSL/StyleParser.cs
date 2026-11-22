@@ -94,38 +94,44 @@ public class StyleParser(
             SkipWhitespaceAndComments();
             if (Check('}')) break;
 
-            if (allowState && Match("state"))
+            switch (allowState)
             {
-                Consume('[');
-                var stateName = ReadIdentifier();
-                Consume(']');
-                SkipWhitespaceAndComments();
-                Consume('=');
-                var stateValue = ParseValue();
-                properties[$"state[{stateName}]"] = stateValue;
-            }
-            else if (allowState && Match("media"))
-            {
-                // media[min-width = 640px] = { … }: the condition is kept as written, read by the sheet.
-                Consume('[');
-                var start = _pos;
-                while (!IsAtEnd() && Peek() != ']') Advance();
-                var condition = dsl[start.._pos].Trim();
-                Consume(']');
-                SkipWhitespaceAndComments();
-                Consume('=');
-                var mediaValue = ParseValue();
-                if (mediaValue is not (BlockValue or OverrideValue { Value: BlockValue }))
-                    throw CreateException("A media block takes { … } of properties");
-                properties[$"media[{condition}]"] = mediaValue;
-            }
-            else
-            {
-                var key = ReadIdentifier();
-                SkipWhitespaceAndComments();
-                Consume('=');
-                var value = ParseValue();
-                properties[key] = value;
+                case true when Match("state"):
+                {
+                    Consume('[');
+                    var stateName = ReadIdentifier();
+                    Consume(']');
+                    SkipWhitespaceAndComments();
+                    Consume('=');
+                    var stateValue = ParseValue();
+                    properties[$"state[{stateName}]"] = stateValue;
+                    break;
+                }
+                case true when Match("media"):
+                {
+                    // media[min-width = 640px] = { … }: the condition is kept as written, read by the sheet.
+                    Consume('[');
+                    var start = _pos;
+                    while (!IsAtEnd() && Peek() != ']') Advance();
+                    var condition = dsl[start.._pos].Trim();
+                    Consume(']');
+                    SkipWhitespaceAndComments();
+                    Consume('=');
+                    var mediaValue = ParseValue();
+                    if (mediaValue is not (BlockValue or OverrideValue { Value: BlockValue }))
+                        throw CreateException("A media block takes { … } of properties");
+                    properties[$"media[{condition}]"] = mediaValue;
+                    break;
+                }
+                default:
+                {
+                    var key = ReadIdentifier();
+                    SkipWhitespaceAndComments();
+                    Consume('=');
+                    var value = ParseValue();
+                    properties[key] = value;
+                    break;
+                }
             }
 
             SkipWhitespaceAndComments();

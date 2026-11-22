@@ -41,8 +41,7 @@ public class StyleSheetAnimationTests
         element.ApplyStyleSheet(styleSheet);
 
         // 4. Verify - the element gets an equivalent animation, not the sheet's own object.
-        Assert.Single(element.Animations);
-        var applied = Assert.IsType<KeyframedAnimation>(element.Animations[0]);
+        var applied = Assert.IsType<KeyframedAnimation>(Assert.Single(element.Animations));
         Assert.NotSame(animation, applied);
         Assert.Equal(animation.Keyframes, applied.Keyframes);
         Assert.Equal(animation.Features, applied.Features);

@@ -59,9 +59,9 @@ public class Grid(UIContext context) : FlexPanel(context)
             if (first + columns < flow.Count) y += RowGap;
         }
 
-        if (commit)
-            foreach (var child in placed)
-                PlaceAbsolute(child, Math.Max(0, width), float.IsInfinity(height) ? y + InsetTop + InsetBottom : height);
+        if (!commit) return (inner, y);
+        foreach (var child in placed)
+            PlaceAbsolute(child, Math.Max(0, width), float.IsInfinity(height) ? y + InsetTop + InsetBottom : height);
 
         return (inner, y);
     }

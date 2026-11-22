@@ -29,7 +29,7 @@ public class ScrollView : Panel
 
     public ScrollView(UIContext context) : base(context)
     {
-        Direction = LayoutDirection.Vertical;
+        SetInitialLayout(LayoutDirection.Vertical);
         _bar = new ScrollBar(context, this)
         {
             OnScrolled = bar => ScrollY = bar.Percentage * MaxScroll
@@ -105,9 +105,13 @@ public class ScrollView : Panel
             var index = Children.IndexOf(_reveal);
             var top = 0f;
             for (var row = 0; row < index; row++) top += heights[row] + Spacing;
-            if (index >= 0 && top < _scrollY) _scrollY = top;
-            else if (index >= 0 && top + heights[index] > _scrollY + innerHeight)
-                _scrollY = Math.Min(top + heights[index] - innerHeight, MaxScroll);
+            _scrollY = index switch
+            {
+                >= 0 when top < _scrollY => top,
+                >= 0 when top + heights[index] > _scrollY + innerHeight =>
+                    Math.Min(top + heights[index] - innerHeight, MaxScroll),
+                _ => _scrollY
+            };
             _reveal = null;
         }
 
@@ -181,12 +185,12 @@ public class ScrollView : Panel
     public override void InvalidateLayout()
     {
         base.InvalidateLayout();
-        _bar?.InvalidateLayout();
+        _bar.InvalidateLayout();
     }
 
     public override void InvalidateCoordinates()
     {
         base.InvalidateCoordinates();
-        _bar?.InvalidateCoordinates();
+        _bar.InvalidateCoordinates();
     }
 }

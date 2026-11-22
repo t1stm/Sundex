@@ -74,7 +74,7 @@ public abstract partial class UIElement
     ///     by <see cref="SetClass" /> reliably wins over the base class it modifies.
     /// </summary>
     public List<string> Classes { get; set; } = [];
-    public virtual ComputedRectangle Computed { get; protected set; }
+    public ComputedRectangle Computed { get; protected set; }
 
     [NamedSetting("animations")]
     public List<Animation> Animations
@@ -106,15 +106,28 @@ public abstract partial class UIElement
     [NamedSetting("width")]
     public virtual LiteralOrComputable Width
     {
-        get;
-        set => UpdateSetDirty(ref field, value);
+        get => _width;
+        set => UpdateSetDirty(ref _width, value);
     }
 
     [NamedSetting("height")]
     public virtual LiteralOrComputable Height
     {
-        get;
-        set => UpdateSetDirty(ref field, value);
+        get => _height;
+        set => UpdateSetDirty(ref _height, value);
+    }
+
+    private LiteralOrComputable _width, _height;
+
+    /// <summary>
+    ///     For constructors: the size the element starts with. Writes this class's storage instead of calling
+    ///     the virtual setters, so a subclass that overrides <see cref="Width" /> or <see cref="Height" />
+    ///     keeps its own value. A new element is laid out anyway, so nothing is invalidated.
+    /// </summary>
+    protected void SetInitialSize(LiteralOrComputable? width = null, LiteralOrComputable? height = null)
+    {
+        if (width is { } w) _width = w;
+        if (height is { } h) _height = h;
     }
 
     /// <summary>
@@ -917,11 +930,9 @@ public abstract partial class UIElement
                                 ?? styleSheet.GetStateOverrideForTag(Tag, state)
                                     ?.GetValueOrDefault(attribute.Name);
 
-            if (overrideValue is not null)
-            {
-                ApplyStyleValue(styleSheet, overrideValue, propertyInfo);
-                Restyled(propertyInfo);
-            }
+            if (overrideValue is null) continue;
+            ApplyStyleValue(styleSheet, overrideValue, propertyInfo);
+            Restyled(propertyInfo);
         }
     }
 
@@ -1109,14 +1120,18 @@ public abstract partial class UIElement
         // a swap on a detached or stopped element would otherwise resurrect its plane and
         // paint it forever. queueIndex >= 0 means the old renderable really was queued,
         // which covers elements kept live by something other than DrawTo.
-        if (queueIndex == -1 && !Drawn) return;
-
-        if (queueIndex == -1 && !string.IsNullOrEmpty(propertyName))
+        switch (queueIndex)
         {
-            var property = GetType().GetProperty(propertyName);
-            var priorityAttr = property?.GetCustomAttribute<RenderPriorityAttribute>();
-            if (priorityAttr != null)
-                queueIndex = priorityAttr.Priority;
+            case -1 when !Drawn:
+                return;
+            case -1 when !string.IsNullOrEmpty(propertyName):
+            {
+                var property = GetType().GetProperty(propertyName);
+                var priorityAttr = property?.GetCustomAttribute<RenderPriorityAttribute>();
+                if (priorityAttr != null)
+                    queueIndex = priorityAttr.Priority;
+                break;
+            }
         }
 
         Context.QueueRender(newRenderable, Index, queueIndex);

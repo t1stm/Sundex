@@ -12,6 +12,8 @@ public class TextBuffer(ITextProvider provider) : IRenderable, IClippable, IDisp
 
     private readonly List<Range> _freeRanges = [];
     private readonly Dictionary<TextSlice, Range> _usedRanges = [];
+    // Guards the ranges and the next free offset, since slices are taken and returned from any thread.
+    private readonly Lock _lock = new();
 
     private int _currentOffset;
     private bool _disposing;
@@ -21,8 +23,11 @@ public class TextBuffer(ITextProvider provider) : IRenderable, IClippable, IDisp
 
     public void Dispose()
     {
-        _disposing = true;
-        foreach (var (textSlice, _) in _usedRanges) textSlice.Dispose();
+        lock (_lock)
+        {
+            _disposing = true;
+            foreach (var (textSlice, _) in _usedRanges) textSlice.Dispose();
+        }
 
         Characters.Dispose();
 
@@ -49,10 +54,7 @@ public class TextBuffer(ITextProvider provider) : IRenderable, IClippable, IDisp
     {
         var range = TakeRange(capacity < 0 ? text.Length : capacity);
         var slice = factory(text, this, range);
-        lock (_usedRanges)
-        {
-            _usedRanges.Add(slice, range);
-        }
+        lock (_lock) _usedRanges.Add(slice, range);
 
         return slice;
     }
@@ -65,17 +67,12 @@ public class TextBuffer(ITextProvider provider) : IRenderable, IClippable, IDisp
     /// </summary>
     public void Reset()
     {
-        lock (_usedRanges)
+        lock (_lock)
         {
             _usedRanges.Clear();
-        }
-
-        lock (_freeRanges)
-        {
             _freeRanges.Clear();
+            _currentOffset = 0;
         }
-
-        _currentOffset = 0;
     }
 
     /// <summary>
@@ -87,53 +84,41 @@ public class TextBuffer(ITextProvider provider) : IRenderable, IClippable, IDisp
     {
         var range = TakeRange(capacity < 0 ? text.Length : capacity);
         slice.Rebind(range);
-        lock (_usedRanges)
-        {
-            _usedRanges.Add(slice, range);
-        }
+        lock (_lock) _usedRanges.Add(slice, range);
 
         slice.Value = text;
     }
 
     private Range TakeRange(int capacity)
     {
-        int charactersCapacity;
-        lock (Characters)
+        lock (_lock)
         {
             // Doubling, as a list grows: a chunk adds its slices one at a time, and growing
             // to the exact size copied the whole buffer on every one of them.
-            if ((charactersCapacity = Characters.Capacity) < _currentOffset + capacity)
+            var charactersCapacity = Characters.Capacity;
+            if (charactersCapacity < _currentOffset + capacity)
                 Characters.ResizeCPUBuffer(charactersCapacity =
                     Math.Max(_currentOffset + capacity, charactersCapacity * 2));
+
+            if (GetFreeRangeIfExists(capacity, charactersCapacity) is { } free) return free;
+
+            var taken = new Range(_currentOffset, _currentOffset + capacity);
+            _currentOffset += capacity;
+            return taken;
         }
-
-        var range = GetFreeRangeIfExists(capacity, charactersCapacity);
-        if (range != null) return range.Value;
-
-        var taken = new Range(_currentOffset, _currentOffset + capacity);
-        _currentOffset += capacity;
-        return taken;
     }
 
+    /// <summary>Takes a freed range that fits. The caller holds <see cref="_lock" />.</summary>
     private Range? GetFreeRangeIfExists(int capacity, int charactersCapacity)
     {
-        lock (_freeRanges)
+        for (var index = 0; index < _freeRanges.Count; index++)
         {
-            if (_freeRanges.Count <= 0) return null;
-            for (var index = 0; index < _freeRanges.Count; index++)
-            {
-                var freeRange = _freeRanges[index];
-                var (offset, length) = freeRange.GetOffsetAndLength(charactersCapacity);
-                if (length < capacity) continue;
+            var (offset, length) = _freeRanges[index].GetOffsetAndLength(charactersCapacity);
+            if (length < capacity) continue;
 
-                _freeRanges.RemoveAt(index);
-
-                if (length <= capacity) return new Range(offset, offset + capacity);
-                var remainingRange = new Range(offset + capacity, offset + length);
-                _freeRanges.Add(remainingRange);
-
-                return new Range(offset, offset + capacity);
-            }
+            _freeRanges.RemoveAt(index);
+            if (length > capacity) _freeRanges.Add(new Range(offset + capacity, offset + length));
+            return new Range(offset, offset + capacity);
         }
 
         return null;
@@ -142,7 +127,7 @@ public class TextBuffer(ITextProvider provider) : IRenderable, IClippable, IDisp
     public void RenderBuffer(in RenderContext context, int endIndex = -1)
     {
         if (endIndex < 0)
-            endIndex = _currentOffset;
+            lock (_lock) endIndex = _currentOffset;
 
         if (endIndex == 0) return;
         var commands = context.Commands;
@@ -157,25 +142,21 @@ public class TextBuffer(ITextProvider provider) : IRenderable, IClippable, IDisp
     public void Remove(TextSlice textSlice)
     {
         Range range;
-        lock (_usedRanges)
+        bool disposing;
+        lock (_lock)
         {
-            range = _usedRanges[textSlice];
+            // Taken out first, so a slice disposed twice frees its range once.
+            if (!_usedRanges.Remove(textSlice, out range)) return;
+            disposing = _disposing;
         }
 
-        if (!_disposing)
+        if (!disposing)
         {
             var (offset, length) = range.GetOffsetAndLength(Characters.Capacity);
             for (var index = offset; index < offset + length; index++) Characters[index] = new TextCharacter();
         }
 
-        lock (_usedRanges)
-        {
-            _usedRanges.Remove(textSlice);
-        }
-
-        lock (_freeRanges)
-        {
-            _freeRanges.Add(range);
-        }
+        // Freed only once cleared, so no one is handed a range that still shows the old text.
+        lock (_lock) _freeRanges.Add(range);
     }
 }

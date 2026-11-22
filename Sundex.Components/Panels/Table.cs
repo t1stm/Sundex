@@ -128,9 +128,9 @@ public class Table(UIContext context) : FlexPanel(context)
             y += row;
         }
 
-        if (commit)
-            foreach (var child in placed)
-                PlaceAbsolute(child, Math.Max(0, width), float.IsInfinity(height) ? y + InsetTop + InsetBottom : height);
+        if (!commit) return (total, y);
+        foreach (var child in placed)
+            PlaceAbsolute(child, Math.Max(0, width), float.IsInfinity(height) ? y + InsetTop + InsetBottom : height);
 
         return (total, y);
     }

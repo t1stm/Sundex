@@ -1,4 +1,4 @@
-using Sundex.Style.DSL.LanguageServer;
+using Sundex.Style.LanguageServer;
 
 namespace Sundex.Style.DSL.Tests;
 

@@ -103,7 +103,7 @@ internal sealed class MarkupDocument
             if (document.Version != "2.0") return document;
 
             var component = reader.GetAttribute("component");
-            document.Tag = string.IsNullOrEmpty(component) ? Kebab(stem) : component!;
+            document.Tag = string.IsNullOrEmpty(component) ? Kebab(stem) : component;
             document.ClassName = Pascal(document.Tag);
             document.Context = reader.GetAttribute("context");
             document.Namespace = reader.GetAttribute("namespace");
@@ -229,7 +229,7 @@ internal sealed class MarkupDocument
                     var eventName = reader.GetAttribute("name");
                     if (string.IsNullOrEmpty(eventName)) throw new MarkupException("An <event> needs a name.", spot);
                     var eventType = reader.GetAttribute("type");
-                    document.Events.Add(new MarkupEvent(eventName!, string.IsNullOrEmpty(eventType) ? null : eventType, spot));
+                    document.Events.Add(new MarkupEvent(eventName, string.IsNullOrEmpty(eventType) ? null : eventType, spot));
                     if (!reader.Read()) break;
                     continue;
                 }
@@ -239,7 +239,7 @@ internal sealed class MarkupDocument
                 var type = reader.GetAttribute("type");
                 if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(type))
                     throw new MarkupException("A <prop> needs a name and a type.", spot);
-                document.Props.Add(new MarkupProp(name!, type!, reader.GetAttribute("default"), spot));
+                document.Props.Add(new MarkupProp(name, type, reader.GetAttribute("default"), spot));
             }
 
             if (!reader.Read()) break;
@@ -259,16 +259,19 @@ internal sealed class MarkupDocument
         reader.Read();
         while (reader is not { NodeType: XmlNodeType.EndElement, Name: "layout" })
         {
-            if (reader.NodeType == XmlNodeType.Element)
+            switch (reader.NodeType)
             {
-                var node = ReadNode(reader, info);
-                document.LayoutRoots++;
-                document.Root ??= node;
-                continue;
+                case XmlNodeType.Element:
+                {
+                    var node = ReadNode(reader, info);
+                    document.LayoutRoots++;
+                    document.Root ??= node;
+                    continue;
+                }
+                case XmlNodeType.Text when reader.Value.Trim().Length > 0:
+                    throw new MarkupException("Text in a layout belongs in an attribute, e.g. <label value=\"…\"/>.", Here(info));
             }
 
-            if (reader.NodeType == XmlNodeType.Text && reader.Value.Trim().Length > 0)
-                throw new MarkupException("Text in a layout belongs in an attribute, e.g. <label value=\"…\"/>.", Here(info));
             if (!reader.Read()) break;
         }
 
@@ -295,14 +298,15 @@ internal sealed class MarkupDocument
 
         while (reader.NodeType != XmlNodeType.EndElement)
         {
-            if (reader.NodeType == XmlNodeType.Element)
+            switch (reader.NodeType)
             {
-                node.Children.Add(ReadNode(reader, info));
-                continue;
+                case XmlNodeType.Element:
+                    node.Children.Add(ReadNode(reader, info));
+                    continue;
+                case XmlNodeType.Text or XmlNodeType.CDATA when reader.Value.Trim().Length > 0:
+                    throw new MarkupException($"Text inside <{node.Tag}> belongs in an attribute, e.g. value=\"…\".", Here(info));
             }
 
-            if (reader.NodeType is XmlNodeType.Text or XmlNodeType.CDATA && reader.Value.Trim().Length > 0)
-                throw new MarkupException($"Text inside <{node.Tag}> belongs in an attribute, e.g. value=\"…\".", Here(info));
             if (!reader.Read()) break;
         }
 

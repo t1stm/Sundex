@@ -44,9 +44,9 @@ public class MarkupTests
         var (sundex, _) = Context();
         var root = new Counter(sundex).Create();
 
-        Assert.IsType<FlexPanel>(root);
+        var flex = Assert.IsType<FlexPanel>(root);
         Assert.Equal("counter", root.ID);
-        Assert.Equal(LayoutDirection.Vertical, ((FlexPanel)root).Direction);
+        Assert.Equal(LayoutDirection.Vertical, flex.Direction);
         var count = Assert.Single(Labels(root, "count"));
         Assert.Equal("Count: 0", Text(count));
         Assert.Equal(20, count.FontSizePx.Value);

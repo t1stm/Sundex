@@ -65,8 +65,7 @@ public class LayoutTests
         Assert.Equal(400, layout.Computed.Width);
         Assert.Equal(300, layout.Computed.Height);
 
-        Assert.Single(layout.Children);
-        var stack = (StackPanel)layout.Children[0];
+        var stack = (StackPanel)Assert.Single(layout.Children);
 
         Assert.Equal(2, stack.Children.Count);
     }

@@ -8,6 +8,9 @@ namespace Sundex.Components.Labels;
 [MarkupTag("button")]
 public class Button : FlexPanel
 {
+    /// <param name="context">The UI context the button belongs to.</param>
+    /// <param name="label">The button's text.</param>
+    /// <param name="background">The plane drawn behind it; null for none.</param>
     /// <param name="font">The label's font; null for the interface font. See <see cref="Label" />.</param>
     public Button(UIContext context, string label, Renderable? background = null, string? font = null) : this(
         context, new Label(context, label, font), background)
@@ -21,8 +24,8 @@ public class Button : FlexPanel
     /// </summary>
     public Button(UIContext context) : base(context)
     {
-        Direction = LayoutDirection.Vertical;
-        Padding = 5;
+        SetInitialLayout(LayoutDirection.Vertical);
+        PaddingTop = PaddingRight = PaddingBottom = PaddingLeft = 5;
         HorizontalAlign = Align.Center;
         VerticalAlign = Align.Center;
         Label = new Label(context);
@@ -33,8 +36,8 @@ public class Button : FlexPanel
 
     public Button(UIContext context, Label label, Renderable? background = null) : base(context)
     {
-        Direction = LayoutDirection.Vertical;
-        Padding = 5;
+        SetInitialLayout(LayoutDirection.Vertical);
+        PaddingTop = PaddingRight = PaddingBottom = PaddingLeft = 5;
         HorizontalAlign = Align.Center;
         VerticalAlign = Align.Center;
         Background = background;

@@ -22,6 +22,11 @@ public abstract partial class UIElement
         long key = 0;
         var bit = 0;
 
+        Add(Tag);
+        foreach (var cls in Classes) Add(cls);
+        Add(ID);
+        return key;
+
         void Add(string name)
         {
             foreach (var rule in sheet.GetMediaRulesForTag(name))
@@ -30,11 +35,6 @@ public abstract partial class UIElement
                 bit++;
             }
         }
-
-        Add(Tag);
-        foreach (var cls in Classes) Add(cls);
-        Add(ID);
-        return key;
     }
 
     /// <summary>Marks the element as watching the viewport when the sheet gives its tag, a class or its id a media block.</summary>

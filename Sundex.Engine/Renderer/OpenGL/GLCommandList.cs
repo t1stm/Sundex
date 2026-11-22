@@ -409,7 +409,7 @@ internal sealed class GLCommandList(GLGraphicsDevice device, ILogger logger) : I
         var topology = pipeline.Topology switch
         {
             PrimitiveTopology.Triangles => PrimitiveType.Triangles,
-            _ => throw new ArgumentOutOfRangeException(nameof(pipeline))
+            _ => throw new NotSupportedException($"The {pipeline.Topology} topology isn't supported.")
         };
         var offset = (nint)((long)firstIndex * sizeof(int));
         if (instanceCount == 1 && !pipeline.HasInstanceAttributes)

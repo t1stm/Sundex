@@ -123,6 +123,9 @@ public class UIContext : IGamePreloadable
     ///     Injects mock provider instances for use in unit tests.
     ///     Should not be called in production code.
     /// </summary>
+    /// <param name="assetProvider">The asset provider every context uses.</param>
+    /// <param name="fontProvider">The font provider; null keeps the current one.</param>
+    /// <param name="textProvider">The text provider for any font not in <paramref name="fontTextProviders" />.</param>
     /// <param name="fontTextProviders">
     ///     Providers <see cref="GetTextProvider" /> returns by font name. Any other font gets
     ///     <paramref name="textProvider" />.
@@ -238,9 +241,12 @@ public class UIContext : IGamePreloadable
                 // Panel-pool patterns like TrackEditorView's NoteBlockPool) - cull those,
                 // anything that has flagged itself invisible (a fully transparent fill) and
                 // anything fully clipped away before it costs a bind/upload/draw.
-                if (renderable is Renderable { IsVisible: false }) continue;
-                if (renderable is Renderable { Scale: var scale } && (scale.X <= 0 || scale.Y <= 0))
-                    continue;
+                switch (renderable)
+                {
+                    case Renderable { IsVisible: false }:
+                    case Renderable { Scale: var scale } when scale.X <= 0 || scale.Y <= 0:
+                        continue;
+                }
 
                 if ((renderable as IClippable)?.ClipRect is { } clip)
                 {

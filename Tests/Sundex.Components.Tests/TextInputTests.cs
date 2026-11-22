@@ -328,9 +328,6 @@ public class TextInputTests
     {
         var (_, _, input) = NewInput();
         var placeholder = input.Children.OfType<Labels.Label>().Last();
-        // A label that shrank keeps its buffer, padded with NULs that draw nothing.
-        string Shown() => placeholder.Value.ToString().TrimEnd('\0');
-
         input.Placeholder = "Filter sounds";
         Assert.Equal("Filter sounds", Shown());
 
@@ -339,5 +336,9 @@ public class TextInputTests
 
         input.Value = "";
         Assert.Equal("Filter sounds", Shown());
+        return;
+
+        // A label that shrank keeps its buffer, padded with NULs that draw nothing.
+        string Shown() => placeholder.Value.ToString().TrimEnd('\0');
     }
 }
