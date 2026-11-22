@@ -19,6 +19,7 @@
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="Tests/Sundex.Components.Tests/Sundex.Components.Tests.csproj" />
+    <Project Path="Tests/Sundex.Engine.Tests/Sundex.Engine.Tests.csproj" />
     <Project Path="Tests/Sundex.Markup.Tests/Sundex.Markup.Tests.csproj" />
     <Project Path="Tests/Sundex.Reactive.Tests/Sundex.Reactive.Tests.csproj" />
     <Project Path="Tests/Sundex.Slug.Tests/Sundex.Slug.Tests.csproj" />

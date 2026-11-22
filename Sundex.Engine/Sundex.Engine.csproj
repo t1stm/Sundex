@@ -45,6 +45,47 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Sundex.Components.Tests"/>
+    <InternalsVisibleTo Include="Sundex.Engine.Tests"/>
   </ItemGroup>
+
+  <!--
+    The native audio library: miniaudio and the sundex_audio shim, one build per RID under
+    Audio/Native/runtimes (built by build/audio-native.sh, not committed). The package ships them as
+    runtime assets; project references get them copied to runtimes/<rid>/native next to the app,
+    where the engine's DllImport resolver looks.
+  -->
+  <PropertyGroup>
+    <SundexAudioNative>$(MSBuildThisFileDirectory)Audio/Native/</SundexAudioNative>
+    <_SundexHostOs Condition="$([MSBuild]::IsOSPlatform('Linux'))">linux</_SundexHostOs>
+    <_SundexHostOs Condition="$([MSBuild]::IsOSPlatform('OSX'))">osx</_SundexHostOs>
+    <_SundexHostArch>$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant())</_SundexHostArch>
+    <_SundexAudioLibrary Condition="'$(_SundexHostOs)' == 'linux'">libsundex_audio.so</_SundexAudioLibrary>
+    <_SundexAudioLibrary Condition="'$(_SundexHostOs)' == 'osx'">libsundex_audio.dylib</_SundexAudioLibrary>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Audio/Native/runtimes/**/*"/>
+    <None Include="Audio/Native/runtimes/**/*" Pack="true" PackagePath="runtimes/"
+          CopyToOutputDirectory="PreserveNewest" Link="runtimes/%(RecursiveDir)%(Filename)%(Extension)"/>
+  </ItemGroup>
+
+  <!--
+    Builds the library for this machine when it's missing or stale, then re-reads the folder so a
+    first build ships what it just made. Windows needs the library from CI.
+  -->
+  <Target Name="SundexBuildAudioNative" BeforeTargets="AssignTargetPaths"
+          Condition="'$(_SundexHostOs)' != '' And '$(SundexSkipAudioNative)' != 'true'"
+          Inputs="$(SundexAudioNative)sundex_audio.c;$(SundexAudioNative)miniaudio.h"
+          Outputs="$(SundexAudioNative)runtimes/$(_SundexHostOs)-$(_SundexHostArch)/native/$(_SundexAudioLibrary)">
+    <Exec Command="sh &quot;$(MSBuildThisFileDirectory)../build/audio-native.sh&quot; $(_SundexHostOs)-$(_SundexHostArch)"/>
+    <ItemGroup>
+      <_SundexAudioNative Include="Audio/Native/runtimes/**/*"/>
+      <None Remove="@(_SundexAudioNative)"/>
+      <None Include="@(_SundexAudioNative)" Pack="true"
+            PackagePath="runtimes/"
+            CopyToOutputDirectory="PreserveNewest"
+            Link="runtimes/%(_SundexAudioNative.RecursiveDir)%(_SundexAudioNative.Filename)%(_SundexAudioNative.Extension)"/>
+    </ItemGroup>
+  </Target>
 
 </Project>

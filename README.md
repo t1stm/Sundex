@@ -8,6 +8,11 @@ compiled markup. Reference `Sundex.Markup.Legacy` and call
 `Sundex.Markup.Legacy.CSharp.Register()` at startup to run C# logic in
 Sundex 1.0 markup. `Sundex.Testing` provides a headless UI context and mock font providers.
 
+`Sundex.Engine.Audio` plays sound through [miniaudio](https://miniaud.io), which ships inside the
+Engine package. `AudioDevice.Open` returns an output that holds buffers with any number of voices, and
+push streams that the device refills on a feeder thread. When no output opens, it returns a silent device
+whose clocks keep running.
+
 ## Projects using Sundex
 
 ### Thirty Dollar Visualizer
@@ -27,7 +32,7 @@ components and markup.
 
 [musicrain](https://github.com/t1stm/musicrain/tree/master/Native) is a self-hosted music service. Its
 desktop client mirrors the web frontend in Sundex Markup 2.0 documents, which `Sundex.Markup.Generator`
-compiles to C# at build time, and plays audio through BASS.
+compiles to C# at build time, and plays audio through Sundex's audio API.
 
 ![The musicrain home page with a track playing, on the client's mock backend](https://raw.githubusercontent.com/t1stm/Sundex/master/docs/images/musicrain-home.png)
 
@@ -47,3 +52,5 @@ text shader is translated from his reference shaders (MIT, Copyright 2017 Eric L
 `background-blur` is the dual Kawase blur from [picom](https://github.com/yshui/picom) (MPL-2.0,
 Copyright Yuxuan Shui). Its sample patterns come from `src/backend/gl/blur.c`, and its 20
 strength levels from `src/backend/backend_common.c`.
+
+Audio is played by a wrapper of [miniaudio](https://github.com/mackron/miniaudio) by David Reid

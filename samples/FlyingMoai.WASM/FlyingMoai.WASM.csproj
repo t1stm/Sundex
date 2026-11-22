@@ -17,6 +17,8 @@
   <ItemGroup>
     <ProjectReference Include="../FlyingMoai/FlyingMoai.csproj"/>
     <NativeFileReference Include="browser.c"/>
+    <!-- miniaudio and the audio shim, playing through Web Audio. A test of the browser path, not a shipped target. -->
+    <NativeFileReference Include="../../Sundex.Engine/Audio/Native/sundex_audio.c"/>
     <Content Update="wwwroot/**" CopyToOutputDirectory="PreserveNewest"/>
   </ItemGroup>
 </Project>

@@ -8,3 +8,4 @@ artifacts/
 node_modules/
 *.vsix
 /docs/handover/
+/Sundex.Engine/Audio/Native/runtimes/

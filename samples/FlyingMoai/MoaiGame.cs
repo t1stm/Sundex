@@ -37,6 +37,19 @@ public sealed class MoaiGame(AssetProvider assets, GameState state) : IDisposabl
 
     public CursorType Cursor => _ui.CursorAtPointer;
 
+    /// <summary>Called each time the Moai claps, for a host that plays a sound.</summary>
+    public Action? Clapped { get; set; }
+
+    /// <summary>40 ms of mono noise that dies away fast: a hand clap, near enough.</summary>
+    public static float[] ClapSound(int rate)
+    {
+        var random = new Random(1);
+        var samples = new float[rate / 25];
+        for (var i = 0; i < samples.Length; i++)
+            samples[i] = (random.NextSingle() * 2 - 1) * MathF.Exp(-i * 120f / rate);
+        return samples;
+    }
+
     public void Update(double delta)
     {
         _world.Update((float)delta, state.Phase.Peek);
@@ -107,6 +120,7 @@ public sealed class MoaiGame(AssetProvider assets, GameState state) : IDisposabl
                 break;
             case Phase.Playing:
                 _world.Clap();
+                Clapped?.Invoke();
                 break;
             case Phase.Over when state.ShowResults.Peek:
                 StartRun();
@@ -123,6 +137,7 @@ public sealed class MoaiGame(AssetProvider assets, GameState state) : IDisposabl
         state.Phase.Value = Phase.Playing;
         _world.Reset();
         _world.Clap();
+        Clapped?.Invoke();
     }
 
     private void EndRun()

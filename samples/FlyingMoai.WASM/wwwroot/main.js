@@ -3,6 +3,7 @@ const status = document.getElementById('status');
 const bestKey = 'FlyingMoai.best';
 const options = new URLSearchParams(location.search);
 const verify = options.has('verify');
+const audioTest = options.has('audiotest');
 const benchmark = options.has('benchmark');
 let stopped = false;
 
@@ -48,6 +49,15 @@ async function start() {
     const { FlyingMoai: { WASM: { Program: game } } } = await runtime.getAssemblyExports(runtime.getConfig().mainAssemblyName);
     let size = canvasSize();
     game.Start(...size, readBest());
+
+    // No thread for the audio feeder in the browser: refill its streams from a timer. A timer
+    // keeps running, throttled, when the tab is hidden; animation frames stop altogether.
+    setInterval(() => { if (!stopped) game.PumpAudio(); }, 10);
+    // miniaudio unlocks the AudioContext on click and touchend; a key that starts the game counts too.
+    const unlockAudio = () => window.miniaudio?.unlock?.();
+    window.addEventListener('keydown', unlockAudio, { capture: true });
+    canvas.addEventListener('pointerdown', unlockAudio, { capture: true });
+    if (audioTest) runAudioTest(game, Number(options.get('volume') ?? 1));
 
     let pointer = null;
     function point(event, down, pressed, released) {
@@ -120,6 +130,34 @@ async function start() {
 
     canvas.addEventListener('webglcontextlost', () => fail('Graphics context lost. Reload to play again.'));
     requestAnimationFrame(animate);
+}
+
+// ?audiotest: a tone kept 2 s ahead while the main thread is loaded down, reported in #status.
+async function runAudioTest(game, volume) {
+    const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const report = label => {
+        const line = `${label}: ${game.ToneReport()}`;
+        console.log(line);
+        status.hidden = false;
+        status.textContent += line + '\n';
+    };
+    status.textContent = '';
+    report('start');
+    game.StartToneTest(volume);
+    await wait(2000);
+    report('steady');
+    // 3 s of 50 ms of busy main thread every 100 ms
+    const busyUntil = performance.now() + 3000;
+    while (performance.now() < busyUntil) {
+        const end = performance.now() + 50;
+        while (performance.now() < end) { }
+        await wait(50);
+    }
+    report('busy');
+    game.Stress(200);
+    await wait(1000);
+    report('gc');
+    status.dataset.result = 'audio-done';
 }
 
 start().catch(error => {
