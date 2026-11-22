@@ -1,0 +1,65 @@
+name: Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      SIXLABORS_LICENSE_KEY: ${{ secrets.SIXLABORS_LICENSE_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.x
+      - name: Publish Flying Moai for the browser
+        run: |
+          dotnet workload install wasm-tools
+          dotnet publish samples/FlyingMoai.WASM -c Release -o publish \
+            -p:SundexSkipAudioNative=true -p:CompressionEnabled=false
+      - name: Render the README
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api markdown -f mode=markdown -F text=@README.md > readme.html
+      - name: Assemble the site
+        run: |
+          mkdir site
+          cp -r publish/wwwroot site/play
+          cp samples/FlyingMoai/Assets/Textures/moai.png site/
+          python3 - <<'EOF'
+          import os, re
+          sha = os.environ['GITHUB_SHA']
+          readme = open('readme.html').read()
+          # Relative links in the README point into the repository.
+          readme = re.sub(r'href="(?![a-z][a-z0-9+.-]*:|#|/)', f'href="https://github.com/t1stm/Sundex/blob/{sha}/', readme)
+          page = open('docs/site/index.html').read().replace('{short}', sha[:7]).replace('{sha}', sha)
+          open('site/index.html', 'w').write(page.replace('<!-- readme -->', readme))
+          EOF
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sundex</title>
+    <meta name="description" content="Sundex is a .NET 10 game and UI framework built on OpenTK. Play Flying Moai, a Sundex sample, in the browser.">
+    <link rel="icon" href="moai.png">
+    <style>
+        /* Page colors come from docs/images/sundex-wordmark.svg. */
+        :root {
+            color-scheme: light dark;
+            --paper: #f5f6fb;
+            --ink: #10153a;
+            --marigold: #ffc83d;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root { --paper: #0f1333; --ink: #e9ebf5; }
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.6 system-ui, sans-serif; }
+        :focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+        img { max-width: 100%; height: auto; }
+
+        .stage { display: flex; flex-direction: column; height: 78svh; background: #2b1b4a; }
+        .stage :focus-visible { outline-color: var(--marigold); }
+        .stage iframe { flex: 1; width: 100%; border: 0; }
+        @media (min-width: 960px) {
+            main { display: grid; grid-template-columns: 1fr 1fr; }
+            .stage { position: sticky; top: 0; height: 100dvh; }
+        }
+
+        /* The poster repeats the game's sky and title card: samples/FlyingMoai/World.cs and Markup/Game.snx.ss. */
+        .sky { flex: 1; display: grid; place-items: center; background: linear-gradient(#2b1b4a, #6b2f6b, #d9576b, #ffb36b); }
+        .card {
+            width: min(340px, calc(100% - 32px)); padding: 28px;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            border: 1px solid #ffffff33; border-radius: 22px; background: #2a1b3d80; box-shadow: 0 0 48px #ffb36b26;
+            color: #fff6e8; text-align: center;
+        }
+        .card p { margin: 0; }
+        .card img { width: 96px; animation: bob 1.4s ease-in-out infinite alternate; }
+        @keyframes bob { to { transform: translateY(-8px); } }
+        @media (prefers-reduced-motion: reduce) { .card img { animation: none; } }
+        .title { font-size: 38px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
+        .muted { color: #e9d6ecb8; font-size: 0.875rem; }
+        .play {
+            margin-top: 8px; padding: 10px 40px; border-radius: 999px;
+            background: #ff7a59; color: #2b1b4a; font-weight: 700; text-decoration: none;
+        }
+        .play:hover { background: #ff9470; }
+
+        .strip {
+            display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 0; padding: 12px 16px;
+            background: #10153a; color: #f5f6fb; font-size: 0.875rem;
+        }
+        .strip a { color: inherit; text-underline-offset: 3px; }
+        .strip code { background: var(--marigold); color: #10153a; padding: 1px 6px; }
+
+        article { max-width: 46rem; padding: 40px 16px 64px; }
+        @media (min-width: 960px) { article { padding: 64px 48px 96px; } }
+        article > p:first-child img { width: min(100%, 30rem); }
+        article img { border-radius: 6px; }
+        h2, h3 { line-height: 1.1; }
+        h2 { margin: 56px 0 16px; font-size: 2.25rem; font-weight: 800; letter-spacing: -0.01em; }
+        h3 { margin: 40px 0 8px; font-size: 1.375rem; font-weight: 700; }
+        article a { color: inherit; text-decoration-color: var(--marigold); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+        article a:hover { text-decoration-thickness: 4px; }
+        article code { padding: 1px 4px; border-radius: 3px; background: color-mix(in srgb, var(--ink) 8%, transparent); }
+        .anchor { display: none; }
+    </style>
+</head>
+<body>
+<main>
+    <article>
+<!-- readme -->
+    </article>
+    <section class="stage" aria-label="Flying Moai">
+        <div class="sky" id="poster">
+            <div class="card">
+                <img src="moai.png" alt="">
+                <p class="title">Flying Moai</p>
+                <p class="muted">Clap to rise. Slip between the pillars.</p>
+                <a class="play" id="play" href="play/">Play</a>
+                <p class="muted">Downloads the .NET runtime and Sundex as WebAssembly.</p>
+            </div>
+        </div>
+        <p class="strip">
+            <a href="https://github.com/t1stm/Sundex">t1stm/Sundex on GitHub</a>
+            <span>Built from <a href="https://github.com/t1stm/Sundex/commit/{sha}"><code>{short}</code></a></span>
+            <a href="play/">Open the game on its own page</a>
+        </p>
+    </section>
+</main>
+<script>
+    document.getElementById('play').addEventListener('click', event => {
+        event.preventDefault();
+        const game = document.createElement('iframe');
+        game.src = 'play/';
+        game.title = 'Flying Moai';
+        game.onload = () => game.contentWindow.focus();
+        document.getElementById('poster').replaceWith(game);
+    });
+</script>
+</body>
+</html>
