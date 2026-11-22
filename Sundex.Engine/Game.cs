@@ -11,9 +11,7 @@ using Serilog;
 using Serilog.Extensions.Logging;
 using Sundex.Engine.AssetManagement;
 using Sundex.Engine.Renderer;
-using Sundex.Engine.Renderer.Abstract;
 using Sundex.Engine.Renderer.OpenGL;
-using Sundex.Engine.Renderer.Attributes;
 using Sundex.Engine.Renderer.Textures;
 using Sundex.Engine.Scenes;
 using Sundex.Engine.Scenes.Arguments;
@@ -55,7 +53,7 @@ public class Game : GameWindow
         _id = id;
 
         Logger = serilogLogger.ForContext<Game>();
-        _device = new GLGraphicsDevice(this, Logger);
+        _device = new GLGraphicsDevice(Logger, () => Context.SwapBuffers());
         _inputLogger = new SerilogLoggerFactory(serilogLogger).CreateLogger("Input");
 
         AssetProvider = new AssetProvider(Logger, [typeof(Game).Assembly, .. assemblies]);
@@ -151,7 +149,7 @@ public class Game : GameWindow
         }
 
         RenderMarker.Debug("Game Window Initialized");
-        foreach (var assembly in AssetAssemblies) ReflectionPreloadObjects(assembly);
+        AssetProvider.PreloadGraphics();
 
         AppDomain.CurrentDomain.UnhandledException +=
             (_, args) =>
@@ -204,28 +202,6 @@ public class Game : GameWindow
             RuntimeInformation.FrameworkDescription, RuntimeInformation.ProcessArchitecture,
             CultureInfo.CurrentCulture.Name);
 
-    }
-
-    private void ReflectionPreloadObjects(Assembly targetAssembly)
-    {
-        const string preloadMethodName = "Preload";
-
-        // who doesn't love reflection in a small game engine?
-        var types = targetAssembly
-            .GetTypes()
-            .Where(type => type.GetCustomAttribute<PreloadGraphicsContextAttribute>() != null);
-
-        foreach (var type in types)
-        {
-            if (!typeof(IGamePreloadable).IsAssignableFrom(type))
-                continue;
-
-            var method = type.GetMethod(preloadMethodName);
-            if (method is null)
-                throw new Exception("Method not found");
-
-            method.Invoke(null, [AssetProvider]);
-        }
     }
 
     protected override void OnFramebufferResize(FramebufferResizeEventArgs e)

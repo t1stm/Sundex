@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../../Sundex.Engine/buildTransitive/Sundex.Engine.props"/>
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <RootNamespace>Sundex.Samples</RootNamespace>
     <OutputType>Exe</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Sundex.Core" Version="$(SundexVersion)"/>
-    <EmbeddedResource Include="Assets/message.txt"/>
+    <ProjectReference Include="../FlyingMoai/FlyingMoai.csproj"/>
   </ItemGroup>
 </Project>

@@ -6,7 +6,7 @@
   <layout>
     <flex class="card" opacity="{(float)shown.Value}" translate-y="{(float)(1 - shown.Value) * 28}">
       <image class="emblem" src="Assets/Textures/moai.png"/>
-      <label class="title" value="Clapping Moai"/>
+      <label class="title" value="Flying Moai"/>
       <label class="tagline" value="Clap to rise. Slip between the pillars."/>
       <flex class="keys">
         <flex class="key">

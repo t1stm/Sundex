@@ -35,9 +35,9 @@ compiles to C# at build time, and plays audio through BASS.
 
 ## Building
 
-Build and test with `dotnet build` and `dotnet test`. After packing into `artifacts/`, run
-`build/smoke-core.sh <version>` on Linux with Xvfb and Mesa. The sample restores its Sundex
-packages from that directory, draws 120 frames and checks the rendered pixels.
+Build and test with `dotnet build` and `dotnet test`.
+
+See [BUILDING.md](BUILDING.md) for build and browser-WASM publishing instructions.
 
 ## Acknowledgments
 

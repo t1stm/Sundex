@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
+    <OutputType>Exe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <WasmBuildNative>true</WasmBuildNative>
+    <EmccExtraLDFlags>$(EmccExtraLDFlags) -lGL -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2</EmccExtraLDFlags>
+    <!-- The SDK otherwise enables the WASM debugger for regular Release builds. -->
+    <WasmDebugLevel Condition="'$(Configuration)' == 'Release' and '$(WasmDebugLevel)' == ''">0</WasmDebugLevel>
+    <!-- Trimming removes graphics preload methods that Sundex calls through reflection. -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../FlyingMoai/FlyingMoai.csproj"/>
+    <NativeFileReference Include="browser.c"/>
+    <Content Update="wwwroot/**" CopyToOutputDirectory="PreserveNewest"/>
+  </ItemGroup>
+</Project>

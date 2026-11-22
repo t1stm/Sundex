@@ -17,7 +17,8 @@ internal sealed class GLTexture(GLGraphicsDevice device)
         if (blank)
         {
             GL.TexImage2D(TextureTarget.Texture2D, 0, Format(texture.Format), texture.Width, texture.Height,
-                0, PixelFormat.Rgba, PixelType.UnsignedByte, nint.Zero);
+                0, PixelFormat.Rgba, texture.Format == TextureFormat.Rgba32Float ? PixelType.Float : PixelType.UnsignedByte,
+                nint.Zero);
             Initialize(texture);
         }
 

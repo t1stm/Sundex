@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Text;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
-using OpenTK.Windowing.Desktop;
 using Serilog;
 using Sundex.Reactive;
 
@@ -11,7 +10,7 @@ namespace Sundex.Engine.Renderer.OpenGL;
 
 public sealed class GLGraphicsDevice : IGraphicsDevice
 {
-    private readonly GameWindow _window;
+    private readonly Action? _present;
     private readonly ILogger _logger;
     private readonly GLCommandList _commands;
     private readonly GLDebugProc _debugCallback;
@@ -20,9 +19,10 @@ public sealed class GLGraphicsDevice : IGraphicsDevice
     private readonly ConcurrentQueue<GLResource> _retired = new();
     private volatile bool _disposed;
 
-    internal GLGraphicsDevice(GameWindow window, ILogger logger)
+    internal GLGraphicsDevice(ILogger logger, Action? present, bool webGL = false)
     {
-        _window = window;
+        _present = present;
+        IsWebGL = webGL;
         _logger = logger.ForContext("SourceContext", "OpenGL");
         if (SundexDevelopment.Enabled) Hazards = new FrameHazards(_logger);
         _commands = new GLCommandList(this, _logger);
@@ -30,9 +30,18 @@ public sealed class GLGraphicsDevice : IGraphicsDevice
         _markerSink = InsertMarker;
     }
 
+    /// <summary>Creates a device for the current WebGL 2 context with OpenTK bindings already loaded.</summary>
+    public static GLGraphicsDevice CreateWebGL2(ILogger logger)
+    {
+        var device = new GLGraphicsDevice(logger, null, webGL: true);
+        device.Initialize();
+        return device;
+    }
+
     public GraphicsBackend Backend => GraphicsBackend.OpenGL;
     public DeviceCapabilities Capabilities { get; private set; } = new();
     internal bool IsDisposed => _disposed;
+    internal bool IsWebGL { get; }
     internal FrameHazards? Hazards { get; }
     internal bool CopiedFromTargetLastFrame => _commands.CopiedLastFrame;
     internal int Width { get; private set; }
@@ -41,18 +50,22 @@ public sealed class GLGraphicsDevice : IGraphicsDevice
     internal void Initialize()
     {
         var extensions = new HashSet<string>(StringComparer.Ordinal);
-        var extensionCount = GL.GetInteger(GetPName.NumExtensions);
+        var glVersion = GL.GetString(StringName.Version) ?? "";
+        if (IsWebGL && !glVersion.Contains("WebGL 2", StringComparison.Ordinal))
+            throw new InvalidOperationException($"Expected WebGL 2, got '{glVersion}'.");
+
+        var extensionCount = IsWebGL ? 0 : GL.GetInteger(GetPName.NumExtensions);
         for (uint index = 0; index < extensionCount; index++)
             if (GL.GetStringi(StringName.Extensions, index) is { } name) extensions.Add(name);
 
-        var major = GL.GetInteger(GetPName.MajorVersion);
-        var minor = GL.GetInteger(GetPName.MinorVersion);
+        var major = IsWebGL ? 3 : GL.GetInteger(GetPName.MajorVersion);
+        var minor = IsWebGL ? 0 : GL.GetInteger(GetPName.MinorVersion);
         var version = major * 10 + minor;
         Capabilities = new DeviceCapabilities
         {
             Vendor = GL.GetString(StringName.Vendor) ?? "",
             Renderer = GL.GetString(StringName.Renderer) ?? "",
-            Version = GL.GetString(StringName.Version) ?? "",
+            Version = glVersion,
             MaxTexture2DSize = GL.GetInteger(GetPName.MaxTextureSize),
             MaxTexture2DLayers = GL.GetInteger(GetPName.MaxArrayTextureLayers),
             SupportsCompute = version >= 43,
@@ -62,7 +75,7 @@ public sealed class GLGraphicsDevice : IGraphicsDevice
 
         _logger.Information("{@Capabilities}, extensions {@Extensions}", Capabilities, extensions);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-        GL.Enable(EnableCap.Multisample);
+        if (!IsWebGL) GL.Enable(EnableCap.Multisample);
 
         if (!Capabilities.SupportsDebug) return;
         GL.Enable(EnableCap.DebugOutput);
@@ -84,7 +97,7 @@ public sealed class GLGraphicsDevice : IGraphicsDevice
     {
         _commands.EndFrame();
         Hazards?.EndFrame();
-        _window.Context.SwapBuffers();
+        _present?.Invoke();
     }
 
     public void Resize(int framebufferWidth, int framebufferHeight)
@@ -133,6 +146,7 @@ public sealed class GLGraphicsDevice : IGraphicsDevice
     public GpuTimer CreateGpuTimer()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+        if (IsWebGL) throw new PlatformNotSupportedException("GPU timers are unavailable in the WebGL device.");
         var queries = new GLResource[4];
         for (var index = 0; index < queries.Length; index++)
             queries[index] = Track(new GLResource(this, GL.GenQuery(), GL.DeleteQuery));

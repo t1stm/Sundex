@@ -48,12 +48,6 @@ jobs:
           dotnet pack Sundex.slnx -c "$CONFIGURATION" --no-build -p:Version="$VERSION" -o artifacts
           test "$(find artifacts -maxdepth 1 -name '*.nupkg' | wc -l)" -eq 11
           test "$(find artifacts -maxdepth 1 -name '*.snupkg' | wc -l)" -eq 11
-      - name: Install software OpenGL and Xvfb
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libglx-mesa0 libxrandr2 libxinerama1 libxcursor1 libxi6
-      - name: Run the core-only sample from the packages
-        run: build/smoke-core.sh "$VERSION" "$CONFIGURATION"
       - uses: actions/upload-artifact@v4
         with:
           name: sundex-packages

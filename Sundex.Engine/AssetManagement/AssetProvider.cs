@@ -4,6 +4,8 @@ using Serilog;
 using Sundex.Engine.AssetManagement.Abstract.Loading;
 using Sundex.Engine.AssetManagement.Abstract.Metadata;
 using Sundex.Engine.AssetManagement.Helpers;
+using Sundex.Engine.Renderer.Abstract;
+using Sundex.Engine.Renderer.Attributes;
 using Sundex.Engine.Threading;
 using Sundex.Reactive;
 
@@ -24,6 +26,21 @@ public class AssetProvider : IAssetProvider
     public ILogger Logger { get; }
 
     public Assembly[] AssetAssemblies { get; }
+
+    /// <summary>Loads resources that scenes expect to be available after graphics initialization.</summary>
+    public void PreloadGraphics()
+    {
+        foreach (var assembly in AssetAssemblies)
+        foreach (var type in assembly.GetTypes())
+        {
+            if (type.GetCustomAttribute<PreloadGraphicsContextAttribute>() is null ||
+                !typeof(IGamePreloadable).IsAssignableFrom(type)) continue;
+
+            var preload = type.GetMethod(nameof(IGamePreloadable.Preload)) ??
+                          throw new InvalidOperationException($"{type.FullName} has no graphics preload method.");
+            preload.Invoke(null, [this]);
+        }
+    }
 
     private static Assembly[] DiscoverAssetAssemblies(Assembly[] supplied)
     {

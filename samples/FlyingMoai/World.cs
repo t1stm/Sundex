@@ -10,7 +10,7 @@ using Sundex.Engine.Renderer.Textures;
 using Sundex.Engine.Text;
 using Sundex.Engine.Text.Fonts;
 
-namespace ClappingMoai;
+namespace FlyingMoai;
 
 /// <summary>
 ///     The island at dusk and the rules of a run: everything drawn under the UI, with Sundex.Core's

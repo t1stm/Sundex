@@ -33,12 +33,12 @@ public sealed class GLProgram(params ShaderSource[] sources) : IDisposable
         _disposed = true;
     }
 
-    internal static int Link(ReadOnlySpan<ShaderSource> sources)
+    internal static int Link(ReadOnlySpan<ShaderSource> sources, bool webGL = false)
     {
+        var shaders = new int[sources.Length];
         var program = GL.CreateProgram();
         try
         {
-            var shaders = new int[sources.Length];
             for (var index = 0; index < sources.Length; index++)
             {
                 var source = sources[index];
@@ -49,22 +49,19 @@ public sealed class GLProgram(params ShaderSource[] sources) : IDisposable
                     ShaderStage.Compute => ShaderType.ComputeShader,
                     _ => throw new ArgumentOutOfRangeException(nameof(sources))
                 });
-                try
+                var code = source.SourceCode;
+                const string desktopHeader = "#version 330 core";
+                if (webGL && code.StartsWith(desktopHeader, StringComparison.Ordinal))
+                    code = "#version 300 es\nprecision highp float;\nprecision highp int;\nprecision highp sampler2D;" + code[desktopHeader.Length..];
+                GL.ShaderSource(shader, code);
+                GL.CompileShader(shader);
+                GL.GetShaderi(shader, ShaderParameterName.CompileStatus, out var compiled);
+                if (compiled == 0)
                 {
-                    GL.ShaderSource(shader, source.SourceCode);
-                    GL.CompileShader(shader);
-                    GL.GetShaderi(shader, ShaderParameterName.CompileStatus, out var compiled);
-                    if (compiled == 0)
-                    {
-                        GL.GetShaderInfoLog(shader, out var error);
-                        throw new InvalidOperationException($"Failed to compile {source.Info.AssetInfo.Location}: {error}");
-                    }
-                    GL.AttachShader(program, shader);
+                    GL.GetShaderInfoLog(shader, out var error);
+                    throw new InvalidOperationException($"Failed to compile {source.Info.AssetInfo.Location}: {error}");
                 }
-                finally
-                {
-                    GL.DeleteShader(shader);
-                }
+                GL.AttachShader(program, shader);
             }
 
             GL.LinkProgram(program);
@@ -81,6 +78,12 @@ public sealed class GLProgram(params ShaderSource[] sources) : IDisposable
         {
             GL.DeleteProgram(program);
             throw;
+        }
+        finally
+        {
+            // Emscripten invalidates the GL name as soon as DeleteShader is called.
+            foreach (var shader in shaders)
+                if (shader != 0) GL.DeleteShader(shader);
         }
     }
 }

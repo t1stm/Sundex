@@ -32,6 +32,7 @@ internal sealed class GLCommandList(GLGraphicsDevice device, ILogger logger) : I
     private int _boundProgram;
     private int _boundUniformBuffer;
     private int _boundArray;
+    private GLResource? _indexUploadArray;
     private int _activeTexture = -1;
     private BlendMode? _blend;
     private Box2i? _scissor;
@@ -165,7 +166,7 @@ internal sealed class GLCommandList(GLGraphicsDevice device, ILogger logger) : I
 
     private GLShader Link(Shader shader)
     {
-        var handle = GLProgram.Link(shader.Sources);
+        var handle = GLProgram.Link(shader.Sources, device.IsWebGL);
         GL.UseProgram(handle);
         _boundProgram = handle;
 
@@ -339,7 +340,20 @@ internal sealed class GLCommandList(GLGraphicsDevice device, ILogger logger) : I
         if (buffer.Usage != usage) throw new ArgumentException($"Expected a {usage} buffer.", nameof(buffer));
         lock (buffer.Backing)
         {
-            var native = buffer.Backing.Get<GLResource>(device) ?? buffer.Backing.Set(device, NewBuffer());
+            var native = buffer.Backing.Get<GLResource>(device);
+            if (native is null)
+            {
+                native = buffer.Backing.Set(device, NewBuffer());
+                if (device.IsWebGL && usage == BufferUsage.Index)
+                {
+                    // WebGL assigns a buffer's index type on its first bind.
+                    _indexUploadArray ??= device.Track(new GLResource(device, GL.GenVertexArray(), GL.DeleteVertexArray));
+                    GL.BindVertexArray(_indexUploadArray.Handle);
+                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, native.Handle);
+                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+                    GL.BindVertexArray(Math.Max(_boundArray, 0));
+                }
+            }
             if (device.Hazards is { } hazards) buffer.Backing.MarkRead(hazards, _pipeline, CurrentLabel);
             var bytes = buffer.GetUpload(out var offset, out var capacity);
             if (capacity < 0 && bytes.IsEmpty) return native;

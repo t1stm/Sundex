@@ -10,11 +10,12 @@
   <Project Path="Sundex.Style.DSL/Sundex.Style.DSL.csproj" />
   <Project Path="Sundex.Style.LanguageServer/Sundex.Style.LanguageServer.csproj" />
   <Project Path="Sundex.Testing/Sundex.Testing.csproj" />
-  <Folder Name="/Debug/">
-    <Project Path="Debug/Sundex.Engine.DummyProject/Sundex.Engine.DummyProject.csproj" />
-  </Folder>
   <Folder Name="/Samples/">
-    <Project Path="samples/Sundex.Samples.ClappingMoai/Sundex.Samples.ClappingMoai.csproj" />
+    <Project Path="samples/FlyingMoai.Desktop/FlyingMoai.Desktop.csproj" />
+    <Project Path="samples/FlyingMoai.WASM/FlyingMoai.WASM.csproj">
+      <Build Project="false" />
+    </Project>
+    <Project Path="samples/FlyingMoai/FlyingMoai.csproj" />
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="Tests/Sundex.Components.Tests/Sundex.Components.Tests.csproj" />
