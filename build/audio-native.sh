@@ -32,6 +32,8 @@ mkdir -p "$out"
 case $rid in
     win-*)
         "$cc" -O2 -shared -o "$out/sundex_audio.dll" "$src/sundex_audio.c" -lole32
+        # the MSVC linker's import library and export file; nothing loads them at run time
+        rm -f "$out/sundex_audio.lib" "$out/sundex_audio.exp"
         ;;
     osx-*)
         case $rid in osx-arm64) march=arm64 ;; *) march=x86_64 ;; esac
