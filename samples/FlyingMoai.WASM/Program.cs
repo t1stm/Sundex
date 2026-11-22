@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
-using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using Serilog;
 using Sundex.Components.Abstractions;
@@ -62,11 +61,7 @@ internal static partial class Program
         _game.Render(commands);
         commands.EndPass();
         _device.EndFrame();
-        if (verify)
-        {
-            var error = GL.GetError();
-            if (error != ErrorCode.NoError) throw new InvalidOperationException($"WebGL reported {error}.");
-        }
+        if (verify) _device.ThrowIfError();
 
         return _game.Cursor == CursorType.Pointer;
     }

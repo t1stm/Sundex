@@ -100,6 +100,13 @@ public sealed class GLGraphicsDevice : IGraphicsDevice
         _present?.Invoke();
     }
 
+    /// <summary>Throws if the context has recorded an error since the last check, naming it.</summary>
+    public void ThrowIfError()
+    {
+        var error = GL.GetError();
+        if (error != ErrorCode.NoError) throw new InvalidOperationException($"The GL context reported {error}.");
+    }
+
     public void Resize(int framebufferWidth, int framebufferHeight)
     {
         Width = framebufferWidth;
