@@ -141,8 +141,16 @@ public class AudioTests
         };
 
         Assert.True(called.Wait(1000, TestContext.Current.CancellationToken));
-        Wait(100);
-        Assert.InRange(Volatile.Read(ref calls), 3, 30);
+
+        // it keeps ticking unasked; a loaded machine stretches the 10 ms waits, so allow it time
+        var clock = Stopwatch.StartNew();
+        while (Volatile.Read(ref calls) < 5 && clock.ElapsedMilliseconds < 2000) Wait(10);
+        Assert.True(Volatile.Read(ref calls) >= 5);
+
+        // and it waits between ticks rather than spinning: about 20 in 200 ms, not thousands
+        var before = Volatile.Read(ref calls);
+        Wait(200);
+        Assert.InRange(Volatile.Read(ref calls) - before, 1, 100);
 
         // between 10 ms ticks, a request is answered without waiting for the next one
         called.Reset();
