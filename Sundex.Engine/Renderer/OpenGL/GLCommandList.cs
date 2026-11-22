@@ -36,6 +36,8 @@ internal sealed class GLCommandList(GLGraphicsDevice device, ILogger logger) : I
     private BlendMode? _blend;
     private Box2i? _scissor;
     private GPUTexture? _target;
+    // Passes suspended by a pass begun inside them, innermost on top.
+    private readonly Stack<(GPUTexture? Target, Box2i? Scissor)> _suspended = [];
     private int _framebuffer;
     private bool _copied;
 
@@ -64,16 +66,19 @@ internal sealed class GLCommandList(GLGraphicsDevice device, ILogger logger) : I
 
     public void BeginPass(in PassDescription pass)
     {
-        ValidateReadback();
+        if (!_pass) ValidateReadback();
         if (pass.Target is { } target && !target.Usage.HasFlag(TextureUsage.RenderTarget))
             throw new ArgumentException("The pass target needs TextureUsage.RenderTarget.", nameof(pass));
+        if (_pass)
+        {
+            _suspended.Push((_target, _scissor));
+            SetScissor(null);
+        }
+
         _target = pass.Target;
         BindTarget();
         _pass = true;
-        _pipeline = null;
-        _program = null;
-        _indices = null;
-        _vertexArrays = null;
+        ForgetPipeline();
         if (pass.ClearColor is { } color)
         {
             GL.ClearColor(color.X, color.Y, color.Z, color.W);
@@ -96,10 +101,27 @@ internal sealed class GLCommandList(GLGraphicsDevice device, ILogger logger) : I
         GL.Viewport(0, 0, TargetSize.X, TargetSize.Y);
     }
 
+    private void ForgetPipeline()
+    {
+        _pipeline = null;
+        _program = null;
+        _indices = null;
+        _vertexArrays = null;
+    }
+
     public void EndPass()
     {
         RequirePass();
         SetScissor(null);
+        if (_suspended.TryPop(out var outer))
+        {
+            _target = outer.Target;
+            BindTarget();
+            ForgetPipeline();
+            SetScissor(outer.Scissor);
+            return;
+        }
+
         _pass = false;
         ReadFramebuffer = _framebuffer;
         ReadSize = TargetSize;

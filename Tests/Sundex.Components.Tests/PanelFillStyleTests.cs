@@ -24,4 +24,19 @@ public class PanelFillStyleTests
         Assert.Equal(0.74f, box.Color.W, 2);
         Assert.Equal(200, box.Scale.X, 1);
     }
+
+    [Theory]
+    [InlineData("{ method = dual_kawase; strength = 3; }", 3)]
+    [InlineData("{ strength = 7; }", 7)]
+    [InlineData("{ method = dual_kawase; }", 5)]
+    [InlineData("{ method = gaussian; strength = 3; }", 0)]
+    public void BackgroundBlurReadsItsMethodAndStrength(string value, int strength)
+    {
+        var ctx = new TestUIContext();
+        var panel = new Panel(ctx);
+        panel.Classes.Add("glass");
+        panel.ApplyStyleSheet(new StyleSheet(StyleParser.Parse($"class glass {{ background-blur = {value}; }}")));
+
+        Assert.Equal(new BackgroundBlur(strength), panel.BackgroundBlur);
+    }
 }

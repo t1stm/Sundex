@@ -8,6 +8,11 @@ namespace Sundex.Engine.Renderer;
 
 public interface ICommandList
 {
+    /// <summary>
+    ///     Begins drawing into a target. A pass begun inside another suspends it, and its <see cref="EndPass" />
+    ///     resumes the outer pass with its target, contents and scissor. Set the pipeline, buffers and textures
+    ///     again after either.
+    /// </summary>
     void BeginPass(in PassDescription pass);
     void EndPass();
 

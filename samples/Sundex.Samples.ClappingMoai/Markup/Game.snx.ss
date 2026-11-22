@@ -61,7 +61,7 @@ class card {
     border-width = 1px;
     border-color = $rim;
     fill = $glass;
-    backdrop-blur = 4;
+    background-blur = { method = dual_kawase; strength = 3 };
     glow-color = #ffb36b26;
 }
 

@@ -15,7 +15,7 @@ layout (std140) uniform Draw {
     vec4 u_Color;
     vec4 u_BorderColor;
     vec4 u_Border;            // top, right, bottom, left
-    vec4 u_ScaleRadiusLod;    // width, height, radius, backdrop lod (negative: no backdrop)
+    vec4 u_ScaleRadiusBackdrop; // width, height, radius, backdrop (negative: none)
     vec4 u_GlowColor;
     vec4 u_Glow;              // centre x, centre y, radius x, radius y; all fractions of the box
     vec4 u_UvRect;
@@ -27,15 +27,15 @@ float roundedBoxSDF(vec2 p, vec2 b, float r) {
 }
 
 void main() {
-    vec2 size = u_ScaleRadiusLod.xy;
-    float radius = min(u_ScaleRadiusLod.z, min(size.x, size.y) * 0.5);
+    vec2 size = u_ScaleRadiusBackdrop.xy;
+    float radius = min(u_ScaleRadiusBackdrop.z, min(size.x, size.y) * 0.5);
 
     vec4 fill = u_Color;
 
-    if (u_ScaleRadiusLod.w >= 0.0) {
+    if (u_ScaleRadiusBackdrop.w >= 0.0) {
         vec2 uv = u_UvRect.xy + vUv * u_UvRect.zw;
         uv.y = u_UvRect.y + (1.0 - vUv.y) * u_UvRect.w;
-        vec4 behind = textureLod(uBackdrop, uv, u_ScaleRadiusLod.w);
+        vec4 behind = texture(uBackdrop, uv);
         fill = vec4(mix(behind.rgb, u_Color.rgb, u_Color.a), 1.0);
     }
 

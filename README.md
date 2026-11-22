@@ -38,3 +38,12 @@ compiles to C# at build time, and plays audio through BASS.
 Build and test with `dotnet build` and `dotnet test`. After packing into `artifacts/`, run
 `build/smoke-core.sh <version>` on Linux with Xvfb and Mesa. The sample restores its Sundex
 packages from that directory, draws 120 frames and checks the rendered pixels.
+
+## Acknowledgments
+
+Text is drawn with the [Slug algorithm](https://github.com/EricLengyel/Slug) by Eric Lengyel. The
+text shader is translated from his reference shaders (MIT, Copyright 2017 Eric Lengyel).
+
+`background-blur` is the dual Kawase blur from [picom](https://github.com/yshui/picom) (MPL-2.0,
+Copyright Yuxuan Shui). Its sample patterns come from `src/backend/gl/blur.c`, and its 20
+strength levels from `src/backend/backend_common.c`.

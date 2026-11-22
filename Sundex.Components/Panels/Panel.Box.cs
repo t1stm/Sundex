@@ -17,7 +17,8 @@ public partial class Panel
     private BoxPlane? _box;
     private Vector4 _fill, _fillShown, _borderColor, _glowColor;
     private Vector4 _glow = new(0.5f, 0.5f, 1, 1);
-    private float _borderTop, _borderRight, _borderBottom, _borderLeft, _backdrop = -1;
+    private float _borderTop, _borderRight, _borderBottom, _borderLeft;
+    private BackgroundBlur _blur;
     private bool _fillTicking;
 
     /// <summary>
@@ -144,14 +145,18 @@ public partial class Panel
         }
     }
 
-    /// <summary>Blurs what's behind the box (CSS <c>backdrop-filter: blur</c>), as a mip level; -1 for none.</summary>
-    [NamedSetting("backdrop-blur")]
-    public float BackdropBlur
+    /// <summary>
+    ///     Blurs what's behind the box (CSS <c>backdrop-filter: blur</c>), written
+    ///     <c>{ method = dual_kawase; strength = 5; }</c>. Strength runs from 1 to 20 as in picom, and
+    ///     both may be left out: the method is <c>dual_kawase</c>, the strength 5.
+    /// </summary>
+    [NamedSetting("background-blur")]
+    public BackgroundBlur BackgroundBlur
     {
-        get => _backdrop;
+        get => _blur;
         set
         {
-            _backdrop = value;
+            _blur = value;
             RefreshBox();
         }
     }
@@ -170,7 +175,7 @@ public partial class Panel
 
     private bool WantsBox => _fill.W > 0 || _fillShown.W > 0 ||
                              (_borderColor.W > 0 && (_borderTop > 0 || _borderRight > 0 || _borderBottom > 0 || _borderLeft > 0)) ||
-                             _glowColor.W > 0 || _backdrop >= 0;
+                             _glowColor.W > 0 || _blur.Strength > 0;
 
     protected override void OnOpacityChanged()
     {
@@ -202,7 +207,7 @@ public partial class Panel
         _box.BorderWidths = new Vector4(_borderTop, _borderRight, _borderBottom, _borderLeft);
         _box.GlowColor = _glowColor with { W = _glowColor.W * alpha };
         _box.Glow = _glow;
-        _box.BackdropLod = _backdrop;
+        _box.BackgroundBlur = _blur;
         _box.PixelScale = Context.PixelScale;
         _box.IsVisible = WantsBox && alpha > 0;
     }

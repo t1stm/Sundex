@@ -310,6 +310,18 @@ public partial class Panel(UIContext context) : UIElement(context), IColoredBack
                 break;
             }
 
+            case BlockValue block when propertyInfo.PropertyType == typeof(BackgroundBlur):
+            {
+                // ponytail: dual_kawase is the only method; another needs a BlurMethod member and a case here.
+                if (block.Properties.TryGetValue("method", out var method) &&
+                    method is not StringValue { Value: "dual_kawase" }) return;
+                var strength = block.Properties.TryGetValue("strength", out var value) && value is NumberValue number
+                    ? (int)MathF.Round(number.Value)
+                    : 5;
+                propertyInfo.SetValue(this, new BackgroundBlur(strength));
+                return;
+            }
+
             default:
             {
                 base.ApplyStyleValue(styleSheet, styleValue, propertyInfo);

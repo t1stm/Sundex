@@ -66,7 +66,7 @@ sealed class SampleGame(ILogger logger) : Game(logger, [typeof(ColoredPlane).Ass
             },
             new TexturedPlane { Texture = _texture, Position = (144, 16, 0), Scale = (48, 48, 1) },
             new ColoredPlane { Color = (0.8f, 0, 0.8f, 1), Position = (16, 80, 0), Scale = (48, 48, 1) },
-            new BoxPlane { BackdropLod = 1, Position = (16, 80, 0), Scale = (48, 48, 1), BorderWidths = (4, 4, 4, 4), BorderColor = Vector4.One },
+            new BoxPlane { BackgroundBlur = new BackgroundBlur(1), Position = (16, 80, 0), Scale = (48, 48, 1), BorderWidths = (4, 4, 4, 4), BorderColor = Vector4.One },
             new AnimatedPlane<ColoredPlane>(
                 new ColoredPlane { Color = (0, 0, 1, 1), Position = (80, 80, 0), Scale = (48, 48, 1) },
                 new KeyframedAnimation([]))
