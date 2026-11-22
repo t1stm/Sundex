@@ -26,7 +26,7 @@ jobs:
           dotnet-version: 10.x
       - name: Publish Flying Moai for the browser
         run: |
-          dotnet workload restore samples/FlyingMoai.WASM
+          (cd samples/FlyingMoai.WASM && dotnet workload restore)
           dotnet publish samples/FlyingMoai.WASM -c Release -o publish \
             -p:SundexSkipAudioNative=true -p:CompressionEnabled=false
       - name: Render the README
