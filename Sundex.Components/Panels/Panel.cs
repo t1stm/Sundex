@@ -312,7 +312,8 @@ public partial class Panel(UIContext context) : UIElement(context), IColoredBack
 
             case BlockValue block when propertyInfo.PropertyType == typeof(BackgroundBlur):
             {
-                // ponytail: dual_kawase is the only method; another needs a BlurMethod member and a case here.
+                // ponytail: dual_kawase is the only method; another needs a BlurMethod member, an IBlurMethod,
+                // and a case here and in IBlurMethod.For.
                 if (block.Properties.TryGetValue("method", out var method) &&
                     method is not StringValue { Value: "dual_kawase" }) return;
                 var strength = block.Properties.TryGetValue("strength", out var value) && value is NumberValue number

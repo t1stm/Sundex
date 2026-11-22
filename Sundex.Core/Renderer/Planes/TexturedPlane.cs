@@ -1,6 +1,6 @@
+using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using OpenTK.Mathematics;
-using Sundex.Core.Renderer.Planes.Uniforms;
 using Sundex.Engine.AssetManagement;
 using Sundex.Engine.Renderer;
 using Sundex.Engine.Renderer.Abstract;
@@ -12,16 +12,14 @@ using Sundex.Engine.Renderer.Textures;
 namespace Sundex.Core.Renderer.Planes;
 
 [PreloadGraphicsContext]
-public class TexturedPlane : Renderable, IGamePreloadable, IBorderRadius
+public sealed class TexturedPlane : Renderable, IGamePreloadable, IBorderRadius
 {
     private static Pipeline _pipeline = null!;
 
-    private TexturedUniform _uniform;
+    private Uniform _uniform;
 
     public TexturedPlane()
     {
-        _uniform = new TexturedUniform();
-
         // The shader multiplies the sampled texel by this, so the inherited default of
         // zero would draw nothing. White is "the texture as it is"; a caller lowers the
         // alpha to fade it (ElementAlpha does exactly that) or the RGB to tint it.
@@ -93,5 +91,18 @@ public class TexturedPlane : Renderable, IGamePreloadable, IBorderRadius
         _uniform.Model = Model;
 
         commands.PushUniforms(1, _uniform);
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 112)]
+    public struct Uniform
+    {
+        [FieldOffset(0)] public Matrix4 Model;
+        [FieldOffset(64)] public Vector4 ScaleAndBorderPx;
+
+        /// <summary>Multiplied over the sampled texel: white draws the texture as-is.</summary>
+        [FieldOffset(80)] public Vector4 Color;
+
+        /// <summary>The part of the texture drawn: offset x, offset y, width, height, in 0–1.</summary>
+        [FieldOffset(96)] public Vector4 UvRect;
     }
 }

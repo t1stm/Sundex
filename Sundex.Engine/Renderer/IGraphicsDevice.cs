@@ -30,4 +30,8 @@ public sealed record DeviceCapabilities
     public int MaxTexture2DSize { get; init; }
     public int MaxTexture2DLayers { get; init; }
     public bool SupportsCompute { get; init; }
+    public bool SupportsDebug { get; init; }
+
+    /// <summary>OpenGL's direct state access, from GL 4.5 or GL_ARB_direct_state_access; false on other backends.</summary>
+    public bool SupportsDirectStateAccess { get; init; }
 }

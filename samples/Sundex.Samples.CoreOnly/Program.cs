@@ -6,7 +6,6 @@ using SixLabors.ImageSharp.PixelFormats;
 using Sundex.Core;
 using Sundex.Core.Animations;
 using Sundex.Core.Renderer.Planes;
-using Sundex.Core.Renderer.Planes.Uniforms;
 using Sundex.Engine;
 using Sundex.Engine.AssetManagement;
 using Sundex.Engine.AssetManagement.Extensions;
@@ -61,7 +60,7 @@ sealed class SampleGame(ILogger logger) : Game(logger, [typeof(ColoredPlane).Ass
             new ColoredPlane { Color = (1, 0, 0, 1), Position = (16, 16, 0), Scale = (48, 48, 1) },
             new GradientPlane
             {
-                GradientType = GradientType.Linear, GradientColors = [(0, 1, 0, 1), (0, 0.6f, 0, 1)],
+                GradientType = GradientPlane.Type.Linear, GradientColors = [(0, 1, 0, 1), (0, 0.6f, 0, 1)],
                 Position = (80, 16, 0), Scale = (48, 48, 1)
             },
             new TexturedPlane { Texture = _texture, Position = (144, 16, 0), Scale = (48, 48, 1) },

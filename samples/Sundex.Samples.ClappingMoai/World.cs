@@ -1,7 +1,6 @@
 using OpenTK.Mathematics;
 using Sundex.Core;
 using Sundex.Core.Renderer.Planes;
-using Sundex.Core.Renderer.Planes.Uniforms;
 using Sundex.Engine.AssetManagement;
 using Sundex.Engine.AssetManagement.Types.Asset;
 using Sundex.Engine.AssetManagement.Types.Texture;
@@ -43,7 +42,7 @@ public sealed class World : IDisposable
     private readonly TextBuffer _text;
 
     private readonly GradientPlane _sky = new() { GradientStops = [0, 0.45f, 0.8f, 1] };
-    private readonly GradientPlane _sunGlow = new() { GradientType = GradientType.Radial };
+    private readonly GradientPlane _sunGlow = new() { GradientType = GradientPlane.Type.Radial };
     private readonly TexturedPlane _sun;
     private readonly Vector2 _sunSize;
     private readonly ColoredPlane[] _clouds = Make(15, () => new ColoredPlane());

@@ -35,8 +35,6 @@ public sealed class GLGraphicsDevice : IGraphicsDevice
     internal bool IsDisposed => _disposed;
     internal FrameHazards? Hazards { get; }
     internal bool CopiedFromTargetLastFrame => _commands.CopiedLastFrame;
-    internal bool SupportsDebug { get; private set; }
-    internal bool SupportsDirectStateAccess { get; private set; }
     internal int Width { get; private set; }
     internal int Height { get; private set; }
 
@@ -50,8 +48,6 @@ public sealed class GLGraphicsDevice : IGraphicsDevice
         var major = GL.GetInteger(GetPName.MajorVersion);
         var minor = GL.GetInteger(GetPName.MinorVersion);
         var version = major * 10 + minor;
-        SupportsDebug = version >= 43 || extensions.Contains("GL_KHR_debug");
-        SupportsDirectStateAccess = version >= 45 || extensions.Contains("GL_ARB_direct_state_access");
         Capabilities = new DeviceCapabilities
         {
             Vendor = GL.GetString(StringName.Vendor) ?? "",
@@ -59,14 +55,16 @@ public sealed class GLGraphicsDevice : IGraphicsDevice
             Version = GL.GetString(StringName.Version) ?? "",
             MaxTexture2DSize = GL.GetInteger(GetPName.MaxTextureSize),
             MaxTexture2DLayers = GL.GetInteger(GetPName.MaxArrayTextureLayers),
-            SupportsCompute = version >= 43
+            SupportsCompute = version >= 43,
+            SupportsDebug = version >= 43 || extensions.Contains("GL_KHR_debug"),
+            SupportsDirectStateAccess = version >= 45 || extensions.Contains("GL_ARB_direct_state_access")
         };
 
         _logger.Information("{@Capabilities}, extensions {@Extensions}", Capabilities, extensions);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         GL.Enable(EnableCap.Multisample);
 
-        if (!SupportsDebug) return;
+        if (!Capabilities.SupportsDebug) return;
         GL.Enable(EnableCap.DebugOutput);
         GL.Enable(EnableCap.DebugOutputSynchronous);
         GL.DebugMessageCallback(_debugCallback, in nint.Zero);
@@ -179,7 +177,7 @@ public sealed class GLGraphicsDevice : IGraphicsDevice
         while (_resources.Count > 0) Destroy(_resources.First());
         _retired.Clear();
         if (RenderMarker.Sink == _markerSink) RenderMarker.Sink = null;
-        if (SupportsDebug) GL.DebugMessageCallback(nint.Zero, null);
+        if (Capabilities.SupportsDebug) GL.DebugMessageCallback(nint.Zero, null);
     }
 
     private static unsafe void InsertMarker(ReadOnlySpan<char> message, MarkerType type)

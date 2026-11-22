@@ -21,7 +21,7 @@ internal sealed class GLVertexArray : GLResource
         _hash = hash;
 
         GL.BindVertexArray(Handle);
-        if (device.SupportsDirectStateAccess)
+        if (device.Capabilities.SupportsDirectStateAccess)
             GL.VertexArrayElementBuffer(Handle, indices.Handle);
         else
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, indices.Handle);

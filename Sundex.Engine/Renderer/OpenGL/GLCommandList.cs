@@ -475,7 +475,7 @@ internal sealed class GLCommandList(GLGraphicsDevice device, ILogger logger) : I
     public unsafe void PushLabel(ReadOnlySpan<char> name)
     {
         if (device.Hazards is not null) _labels.Add(name.ToString());
-        if (!device.SupportsDebug) return;
+        if (!device.Capabilities.SupportsDebug) return;
         Span<byte> bytes = stackalloc byte[Encoding.UTF8.GetMaxByteCount(name.Length) + 1];
         var length = Encoding.UTF8.GetBytes(name, bytes);
         bytes[length] = 0;
@@ -486,7 +486,7 @@ internal sealed class GLCommandList(GLGraphicsDevice device, ILogger logger) : I
     public void PopLabel()
     {
         if (_labels.Count > 0) _labels.RemoveAt(_labels.Count - 1);
-        if (device.SupportsDebug) GL.PopDebugGroup();
+        if (device.Capabilities.SupportsDebug) GL.PopDebugGroup();
     }
 
     private void RequirePass()

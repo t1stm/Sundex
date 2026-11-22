@@ -1,6 +1,6 @@
+using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using OpenTK.Mathematics;
-using Sundex.Core.Renderer.Planes.Uniforms;
 using Sundex.Engine.AssetManagement;
 using Sundex.Engine.Renderer;
 using Sundex.Engine.Renderer.Abstract;
@@ -15,12 +15,7 @@ public class ColoredPlane : Renderable, IGamePreloadable, IBorderRadius
 {
     private static Pipeline _pipeline = null!;
 
-    private ColoredUniform _uniform;
-
-    public ColoredPlane()
-    {
-        _uniform = new ColoredUniform();
-    }
+    private Uniform _uniform;
 
     public override Vector3 Position
     {
@@ -95,5 +90,13 @@ public class ColoredPlane : Renderable, IGamePreloadable, IBorderRadius
         _uniform.Model = Model;
 
         commands.PushUniforms(1, _uniform);
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 96)]
+    public struct Uniform
+    {
+        [FieldOffset(0)] public Matrix4 Model;
+        [FieldOffset(64)] public Vector4 Color;
+        [FieldOffset(80)] public Vector4 ScaleAndBorderPx;
     }
 }
