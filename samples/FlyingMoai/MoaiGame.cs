@@ -9,10 +9,6 @@ using Sundex.Reactive;
 
 namespace FlyingMoai;
 
-/// <summary>
-///     The one scene: the world underneath, the markup overlay on top, and the input that drives
-///     both. Space, the up arrow, W, Enter or a click claps.
-/// </summary>
 public sealed class MoaiGame(AssetProvider assets, GameState state) : IDisposable
 {
     private World _world = null!;
