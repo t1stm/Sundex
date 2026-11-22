@@ -1,60 +1,84 @@
-# Building Sundex apps
+# Building Sundex
 
-Sundex apps publish for the browser from a dedicated .NET WebAssembly executable project. The browser and desktop entry points can share the app's logic, rendering, assets, and generated markup. The browser entry point owns the canvas, animation loop, and browser services. It follows the same pattern as [Flying Moai](samples/FlyingMoai.WASM/README.md), the working browser sample.
+## Build the libraries
 
-## Build Sundex and run the browser sample
-
-From the Sundex repository root, use the .NET 10 SDK. The solution lists both sample hosts under Samples. Default solution builds cover the desktop projects and tests. Publish the browser sample directly with `wasm-tools` installed.
+You need the .NET 10 SDK. Run these from the repository root.
 
 ```sh
 dotnet build Sundex.slnx
 dotnet test --solution Sundex.slnx
-
-dotnet workload install wasm-tools
-dotnet publish samples/FlyingMoai.WASM -c Release
-python -m http.server 8766 --bind 127.0.0.1 --directory samples/FlyingMoai.WASM/bin/Release/net10.0/publish/wwwroot
 ```
 
-Run the desktop sample with `dotnet run --project samples/FlyingMoai.Desktop`. Both this project and `samples/FlyingMoai.WASM` reference `samples/FlyingMoai`, the shared game library that owns the assets and generated markup. Each host provides its own best-score storage.
+`Sundex.Engine` builds its native audio library, miniaudio and the `sundex_audio` shim, for the host machine. On Linux and macOS the build runs `build/audio-native.sh` with `cc`, or `$CC` if set. On Windows the build skips it. Run `sh build/audio-native.sh win-x64 clang` from Git Bash, or take `sundex_audio.dll` from a CI build. Pass `-p:SundexSkipAudioNative=true` to skip the native build.
 
-Open `http://127.0.0.1:8766/?verify` in Zen or Chromium. Start with Space, let the Moai crash, and click **Clap again**. The sample reports WebGL errors with `?verify` and records startup and frame submission timings with `?benchmark`.
+Debug builds need nothing else. Release builds validate the ImageSharp license, so set `SIXLABORS_LICENSE_KEY` in the environment or add a `sixlabors.lic` file.
 
-## Add a browser build to an existing app
-
-1. Put the app code that both hosts will use in a managed project. Have each executable reference it. Keep the OpenTK window, desktop input, and native services in the desktop host. In the browser host, pass canvas size, frame timing, and input to the shared code. Flying Moai shares its game behind those entry points. [Shared game](samples/FlyingMoai/MoaiGame.cs) · [Desktop host](samples/FlyingMoai.Desktop/MoaiScene.cs) · [Browser host](samples/FlyingMoai.WASM/Program.cs)
-2. Create an executable project with `Sdk="Microsoft.NET.Sdk.WebAssembly"`, `TargetFramework=net10.0`, and `RuntimeIdentifier=browser-wasm`. Use a Sundex checkout or a matching set of packages built from a revision with the WebGL 2 changes. Use the sample's `BrowserContext.cs`, `browser.c`, and project settings as the starting point for your browser host. [Browser project](samples/FlyingMoai.WASM/FlyingMoai.WASM.csproj) · [Browser helper](samples/FlyingMoai.WASM/BrowserContext.cs)
-3. Add `wwwroot/index.html` with a `#sundex` canvas and a JS module that loads `_framework/dotnet.js`. Set `CopyToOutputDirectory="PreserveNewest"` on the `wwwroot` content to make the regular build output runnable from a static server. Create the WebGL 2 context and load OpenTK through `BrowserContext.Open()`, then call `GLGraphicsDevice.CreateWebGL2`. Call `Frame.Install()` and `AssetProvider.PreloadGraphics()` before initializing the app. Use `requestAnimationFrame` to run `Frame.Pump()`, update the app, and render. Feed the device physical canvas dimensions and use CSS dimensions for UI and pointer coordinates. [Sample loader](samples/FlyingMoai.WASM/wwwroot/main.js) · [Context creation](samples/FlyingMoai.WASM/browser.c)
-4. Keep shaders, fonts, and bundled images as embedded resources. Keep the Markup 2.0 generator in the project that owns the `.snx.xml` files. Start with `PublishTrimmed=false` because Sundex discovers graphics preload methods through reflection. Check custom shaders and rendering calls against WebGL 2, and verify a published Release build before enabling trimming or AOT. [Markup build integration](Sundex.Markup.Generator/buildTransitive/Sundex.Markup.Generator.props) · [WebGL 2 specification](https://registry.khronos.org/webgl/specs/latest/2.0/)
-
-The browser project enables `WasmBuildNative` to relink the Mono WASM runtime with Emscripten, the WebGL 2 library, and the tiny C context initializer. The app's C# and generated markup build with the regular .NET compiler. OpenTK's function pointers use Mono interpreter trampolines declared in `BrowserContext.cs`. An app that calls additional native GL functions may need additional signatures. [Browser context and signatures](samples/FlyingMoai.WASM/BrowserContext.cs) · [.NET native relinking](https://github.com/dotnet/runtime/blob/v10.0.0/src/mono/wasm/features.md#c-code-or-native-linked-libraries)
-
-### Audio in the browser
-
-Sundex audio runs in the browser through miniaudio's Web Audio backend. The browser sample plays its clap this way. Treat the browser path as a test target for now. Add the engine's `Audio/Native/sundex_audio.c` to the browser project as a `NativeFileReference`, which links miniaudio into the relinked runtime. The browser has no thread for the device's feeder, so call `AudioDevice.Pump()` from a `setInterval` in the page script. Do not drive it from `requestAnimationFrame`, which stops in a hidden tab. miniaudio unlocks the page's audio on `click` and `touchend`. If a key can start playback, call `window.miniaudio.unlock()` from your `keydown` handler. `AudioDevice.Suspended` stays true until the page's audio is unlocked. [Browser project](samples/FlyingMoai.WASM/FlyingMoai.WASM.csproj) · [Page script](samples/FlyingMoai.WASM/wwwroot/main.js)
-
-Open the sample with `?audiotest` to run a 440 Hz tone with 2 s queued ahead. The test then blocks the main thread for 50 ms out of every 100 ms for 3 s, and runs a full collection over a 200 MB heap. It reports in the page and the console. Add `&volume=0` to run it silently. Single-threaded .NET can't use miniaudio's AudioWorklet mode, because that mode needs wasm workers and `ASYNCIFY`. The mixing therefore runs on the main thread in a `ScriptProcessorNode`. In Chromium 156 the test had no underruns, and the playhead kept pace through the busy and collection phases.
-
-### Publish and host
-
-Run `dotnet publish path/to/MyApp.Browser.csproj -c Release -o artifacts/browser`. Serve `artifacts/browser/wwwroot` with its `_framework` directory intact. The published directory includes the HTML entry point, JavaScript loader, .NET runtime, and managed assemblies. The web server serves static files and the app runs in the browser.
-
-Serve `.wasm` as `application/wasm`. With NGINX, `gzip_static on` can serve the precompressed `.gz` assets from publish. Use HTTPS for deployment and test a cold load at the intended URL prefix. The sample uses a single-threaded WASM runtime, so it does not need cross-origin isolation headers for WASM threads.
-
-## Thirty Dollar Visualizer
-
-The Visualizer project lives at `Visualizer/ThirtyDollarVisualizer/ThirtyDollarVisualizer.csproj` in the [ThirtyDollarTools repository](https://github.com/t1stm/ThirtyDollarTools). Its existing executable starts Sundex's desktop `Game`, configures an OpenTK window, and loads the desktop scenes through that window. `dotnet publish` with `-r browser-wasm` alone cannot port that entry point. ThirtyDollarTools needs a browser executable, for example `Visualizer/ThirtyDollarVisualizer.Browser/ThirtyDollarVisualizer.Browser.csproj`, plus browser implementations of the platform services it uses.
-
-| Area | Work for the browser target |
-| --- | --- |
-| Startup and drawing | Extract the Visualizer scene logic that depends on `Game` and `ThirtyDollarWorkflow` so a canvas host can drive it. Validate the custom playfield shaders and instance rendering on WebGL 2. For a first smoke test, play a bundled sequence silently and verify playfield movement and seek. |
-| Audio and scheduling | The desktop workflow plays through Sundex audio and feeds `VoicePlayback` from the device's feeder thread. In the browser the host pumps the device instead, so the mixing shares the main thread. Call `AudioDevice.Pump()` from a timer, as the browser sample does. Use playback time from the audio backend to keep the playfield in sync. The optional OpenGL 4.3 mixer uses compute shaders, which WebGL 2 does not support. Start with a CPU mixing path and measure dense sequences before choosing a separate browser compute backend. [Browser audio](#audio-in-the-browser) |
-| Files and settings | Load bundled or downloaded samples asynchronously. Use a browser file picker or drop handler for sequence import, browser storage for settings, and browser downloads for exports. Audit explicit thread creation, including the playfield chunk fill, for the initial single-threaded target. |
-| Editor and other scenes | Port each scene's window and input dependencies as it comes online. The editor still has Markup 1.0 documents, so move any runtime C# scripting needed by the browser to compiled Markup 2.0 or regular C#. Verify editor import and export separately from visualization. |
-
-After adding the browser project at the proposed path, run this command from the ThirtyDollarTools root.
+To test an app against local changes, pack the libraries to a folder and use it as a package source.
 
 ```sh
-dotnet publish Visualizer/ThirtyDollarVisualizer.Browser/ThirtyDollarVisualizer.Browser.csproj -c Release -o artifacts/visualizer-browser
+dotnet pack Sundex.slnx -c Release -o artifacts -p:Version=0.0.1-local.1
 ```
 
-Serve `artifacts/visualizer-browser/wwwroot`. If using locally packed Sundex packages, restore them from the local feed and set `SundexVersion` in `Sundex.props` or pass `-p:SundexVersion=<version>` so the Visualizer and its scene projects all use the same build. The desktop release workflow continues to publish the desktop project for each native RID.
+A local pack ships only the audio libraries present under `Sundex.Engine/Audio/Native/runtimes`. Usually that is just the host's.
+
+## Start a new app
+
+Sundex is published to nuget.org as prerelease packages. Create a console app and add `Sundex.Core`, which brings in Engine, Slug and Reactive.
+
+```sh
+dotnet new console -n MyGame
+cd MyGame
+dotnet add package Sundex.Core --prerelease
+```
+
+`Game` opens the window and runs the scene loop. Pass it the assemblies that hold your embedded assets, then load a scene once the window is up.
+
+```csharp
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Desktop;
+using Serilog;
+using Sundex.Engine;
+
+using var logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+using var game = new Game(logger, [typeof(Program).Assembly], new GameWindowSettings(), new NativeWindowSettings
+{
+    ClientSize = (1280, 720),
+    APIVersion = new Version(3, 3),
+    Flags = ContextFlags.ForwardCompatible,
+    Title = "My Game",
+    Vsync = VSyncMode.On
+}, "MyGame");
+
+game.Enqueue(instance => instance.SceneManager.LoadScene("main", _ => new MainScene(instance)));
+game.Enqueue(instance => instance.SceneManager.TransitionTo("main"));
+game.Run();
+```
+
+`MainScene` derives from `Sundex.Engine.Scenes.Scene`. Build its contents in `Initialize`, and draw them in `Render`. [Flying Moai's scene](samples/FlyingMoai.Desktop/MoaiScene.cs) is a complete example. Keep textures, fonts and shaders as `EmbeddedResource` items.
+
+### UI and markup
+
+Add the packages for the parts you use. `Sundex.Style.DSL` adds styling. `Sundex.Components` adds UI controls. `Sundex.Markup` adds Markup 2.0, and brings both of those and `Sundex.Markup.Generator`, which compiles the documents to C#.
+
+```sh
+dotnet add package Sundex.Markup --prerelease
+```
+
+The generator compiles every `.snx.xml` in the project into a component class in `$(RootNamespace).Markup`. Set `SundexMarkupContext` in the project file to the type the documents bind to. Override the namespace with `SundexMarkupNamespace`. [Flying Moai](samples/FlyingMoai/FlyingMoai.csproj) has documents with styles and logic under `Markup/`.
+
+### Develop against a Sundex checkout
+
+To change Sundex and the app together, reference the projects instead of the packages. Project references don't apply the packages' `buildTransitive` props, so import them yourself. The samples do the same.
+
+```xml
+<Import Project="../Sundex/Sundex.Engine/buildTransitive/Sundex.Engine.props"/>
+<Import Project="../Sundex/Sundex.Markup.Generator/buildTransitive/Sundex.Markup.Generator.props"/>
+
+<ItemGroup>
+  <ProjectReference Include="../Sundex/Sundex.Markup/Sundex.Markup.csproj"/>
+  <ProjectReference Include="../Sundex/Sundex.Markup.Generator/Sundex.Markup.Generator.csproj"
+                    OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+</ItemGroup>
+```
+
+For a browser build, start from [the WASM sample](samples/FlyingMoai.WASM/README.md).

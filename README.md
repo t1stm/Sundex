@@ -1,17 +1,12 @@
 ![Sundex, Game Renderer](https://raw.githubusercontent.com/t1stm/Sundex/master/docs/images/sundex-wordmark.svg)
 
-Sundex is a .NET 10 game and UI framework built on OpenTK. Reference `Sundex.Core` for a
-game with planes, text and a scene loop. The Core package brings Engine, Slug and Reactive.
+Sundex is a .NET 10 game and UI framework built on OpenTK.
+It started out as the engine of Thirty Dollar Visualizer, but was extracted to what you now see.
 
-`Sundex.Style.DSL`, `Sundex.Components` and `Sundex.Markup` add styling, UI controls and
-compiled markup. Reference `Sundex.Markup.Legacy` and call
-`Sundex.Markup.Legacy.CSharp.Register()` at startup to run C# logic in
-Sundex 1.0 markup. `Sundex.Testing` provides a headless UI context and mock font providers.
+It contains everything needed to build the Thirty Dollar Visualizer and other games you might want to do. 
+It's still 2D only, but it will be later adapted to 3D games as well. 
 
-`Sundex.Engine.Audio` plays sound through [miniaudio](https://miniaud.io), which ships inside the
-Engine package. `AudioDevice.Open` returns an output that holds buffers with any number of voices, and
-push streams that the device refills on a feeder thread. When no output opens, it returns a silent device
-whose clocks keep running.
+For more info on each component, reference their specific documentation.
 
 ## Projects using Sundex
 
@@ -42,7 +37,7 @@ compiles to C# at build time, and plays audio through Sundex's audio API.
 
 Build and test with `dotnet build` and `dotnet test`.
 
-See [BUILDING.md](BUILDING.md) for build and browser-WASM publishing instructions.
+See [BUILDING.md](BUILDING.md) for build instructions and how to start a new app.
 
 ## Acknowledgments
 
