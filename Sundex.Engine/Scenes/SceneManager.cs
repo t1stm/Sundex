@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using OpenTK.Windowing.Common;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using Serilog;
+using Sundex.Engine.Input;
 using Sundex.Engine.Scenes.Arguments;
 
 namespace Sundex.Engine.Scenes;
@@ -160,15 +160,6 @@ public class SceneManager(ILogger logger)
         }
     }
 
-    public void Keyboard(KeyboardState keyboardState)
-    {
-        lock (ActiveScenes)
-        {
-            foreach (var scene in ActiveScenes)
-                scene.Keyboard(keyboardState);
-        }
-    }
-
     public void TextInput(TextInputEventArgs args)
     {
         lock (ActiveScenes)
@@ -185,11 +176,18 @@ public class SceneManager(ILogger logger)
         }
     }
 
-    public void Mouse(MouseState mouseState, KeyboardState keyboardState)
+    /// <summary>
+    ///     Hands the update's input to the active scenes: the keys while any is down or was
+    ///     pressed (a browser can see a tap start and end between updates), the pointer always.
+    /// </summary>
+    public void Input(PointerInput pointer, KeyboardInput keyboard)
     {
         lock (ActiveScenes)
         {
-            foreach (var scene in ActiveScenes) scene.Mouse(mouseState, keyboardState);
+            if (keyboard.IsAnyKeyDown || keyboard.IsAnyKeyPressed)
+                foreach (var scene in ActiveScenes) scene.Keyboard(keyboard);
+
+            foreach (var scene in ActiveScenes) scene.Mouse(pointer, keyboard);
         }
     }
 

@@ -1,6 +1,5 @@
 using System.Reflection;
 using OpenTK.Mathematics;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using Sundex.Components.Abstractions;
 using Sundex.Components.Abstractions.Values;
 using Sundex.Components.Attributes;
@@ -11,6 +10,7 @@ using Sundex.Style.DSL;
 using Sundex.Style.DSL.Abstract;
 using Sundex.Style.DSL.Abstract.Values;
 using Sundex.Style.DSL.Abstract.Values.Keywords;
+using Sundex.Engine.Input;
 
 namespace Sundex.Components.Bars;
 
@@ -170,7 +170,7 @@ public class ProgressBar : UIElement
         ForegroundPanel.Update(uiContext);
     }
 
-    public override void Test(MouseState mouse, Vector2 scale)
+    public override void Test(PointerInput mouse, Vector2 scale)
     {
         if (!Visible) return;
         base.Test(mouse, scale);

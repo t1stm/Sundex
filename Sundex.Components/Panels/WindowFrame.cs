@@ -4,6 +4,7 @@ using Sundex.Core.Renderer.Planes;
 using Sundex.Components.Abstractions;
 using Sundex.Components.Abstractions.Values;
 using Sundex.Components.Labels;
+using Sundex.Engine.Input;
 
 namespace Sundex.Components.Panels;
 
@@ -67,7 +68,7 @@ public class WindowFrame : Panel
         }
     }
 
-    public override void Test(MouseState mouse, Vector2 scale)
+    public override void Test(PointerInput mouse, Vector2 scale)
     {
         base.Test(mouse, scale);
 
@@ -82,13 +83,13 @@ public class WindowFrame : Panel
         _resizingYMode = 0;
     }
 
-    protected void ComputeHeaderPressed(MouseState mouse)
+    protected void ComputeHeaderPressed(PointerInput mouse)
     {
         X = Computed.X + mouse.Delta.X;
         Y = Computed.Y + mouse.Delta.Y;
     }
 
-    protected void ComputeResize(MouseState mouse)
+    protected void ComputeResize(PointerInput mouse)
     {
         const float resizeMargin = 10; // px
 
@@ -123,7 +124,7 @@ public class WindowFrame : Panel
         Container.Children = [Header, child];
     }
 
-    protected void HandleActiveResize(MouseState mouse)
+    protected void HandleActiveResize(PointerInput mouse)
     {
         switch (_resizingXMode)
         {

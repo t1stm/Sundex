@@ -1,4 +1,3 @@
-using Sundex.Reactive;
 using System.ComponentModel;
 using System.Globalization;
 using System.Reflection;
@@ -9,28 +8,27 @@ using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using Serilog;
 using Serilog.Extensions.Logging;
-using Sundex.Engine.AssetManagement;
+using Sundex.Engine.Input;
 using Sundex.Engine.Renderer;
 using Sundex.Engine.Renderer.OpenGL;
-using Sundex.Engine.Renderer.Textures;
-using Sundex.Engine.Scenes;
-using Sundex.Engine.Scenes.Arguments;
-using Sundex.Engine.Threading;
+using Sundex.Reactive;
 
 using MILogger =  Microsoft.Extensions.Logging.ILogger;
 
 namespace Sundex.Engine;
 
-public class Game : GameWindow
+/// <summary>The desktop window: a GLFW window that hosts a <see cref="GameRuntime" />.</summary>
+public class Game : GameWindow, IGameHost
 {
-    private readonly Queue<Action<Game>> _enqueuedEvents = new();
     private readonly string _id;
     private readonly GLGraphicsDevice _device;
-    private GPUTexture? _frameTarget;
-    private bool _offscreen;
+    private readonly Action _afterRenderPass;
 
     private static readonly (MouseButton Button, string Name)[] TracedButtons =
         [(MouseButton.Left, "left"), (MouseButton.Middle, "middle"), (MouseButton.Right, "right")];
+
+    // Distinct: MouseButton has aliases (Left is Button1).
+    private static readonly MouseButton[] PointerButtons = [.. Enum.GetValues<MouseButton>().Distinct()];
 
     // Distinct: Keys has aliases, which would log one press twice.
     private static readonly Keys[] TracedKeys = [.. Enum.GetValues<Keys>().Where(key => key != Keys.Unknown).Distinct()];
@@ -56,27 +54,24 @@ public class Game : GameWindow
         _device = new GLGraphicsDevice(Logger, () => Context.SwapBuffers());
         _inputLogger = new SerilogLoggerFactory(serilogLogger).CreateLogger("Input");
 
-        AssetProvider = new AssetProvider(Logger, [typeof(Game).Assembly, .. assemblies]);
-        SceneManager = new SceneManager(Logger);
+        Runtime = new GameRuntime(Logger, assemblies, _device, this);
+        _afterRenderPass = OnAfterRenderPass;
 
         if (!SundexDevelopment.Enabled) return;
         // The IDE callback and file watcher run on their own threads. Rebuilding the UI
         // touches GL objects, so reloads land on the render thread's frame queue.
-        HotReload.Requested = scope => Enqueue(game => game.SceneManager.Reload(scope));
-        _sourceWatcher = new SourceWatcher(Logger, AssetProvider.SourceRoots);
+        HotReload.Requested = scope => Runtime.Enqueue(runtime => runtime.SceneManager.Reload(scope));
+        _sourceWatcher = new SourceWatcher(Logger, Runtime.AssetProvider.SourceRoots);
     }
 
     public ILogger Logger { get; }
-    public Assembly[] AssetAssemblies => AssetProvider.AssetAssemblies;
-    public AssetProvider AssetProvider { get; }
-    public SceneManager SceneManager { get; }
-    public ThreadRunner ThreadRunner => AssetProvider.ThreadRunner;
 
-    public GameGlobals Globals { get; } = new();
+    /// <summary>What runs the scenes in this window.</summary>
+    public GameRuntime Runtime { get; }
 
     /// <summary>
     ///     Title and text shown when the fullscreen shortcut is pressed on Wayland - see
-    ///     <see cref="OnWindowActionUnavailable" />. Says what to do, not why: the GLFW
+    ///     <see cref="GameRuntime.OnWindowActionUnavailable" />. Says what to do, not why: the GLFW
     ///     reason goes to the log.
     /// </summary>
     public const string WaylandFullscreenTitle = "Fullscreen is up to your desktop";
@@ -86,61 +81,21 @@ public class Game : GameWindow
         "On Wayland, apps can't switch themselves to fullscreen.\n" +
         "Use your window manager's shortcut instead, often Super+F or F11.";
 
-    /// <summary>
-    ///     Raised with a title and a message when a window action the platform refuses is
-    ///     attempted; today only fullscreen on Wayland. The engine has no UI of its own, so
-    ///     the active scene wires this to whatever it shows dialogs with - unwired, the
-    ///     refusal only reaches the log.
-    /// </summary>
-    public Action<string, string>? OnWindowActionUnavailable { get; set; }
-
-    /// <summary>
-    ///     Whether the pointer is over the window. <see cref="NativeWindow.MouseState" /> keeps
-    ///     the last position it had inside, so UI that reacts to where the pointer is can't
-    ///     tell a pointer resting at an edge from one that left across it without this.
-    /// </summary>
+    /// <inheritdoc />
     public bool IsCursorInWindow { get; private set; }
 
     /// <summary>What the context supports; filled in once it exists, before any scene initializes.</summary>
     public IGraphicsDevice Device => _device;
 
-    /// <summary>
-    ///     Ratio between physical framebuffer pixels and logical window (client) size, measured
-    ///     as FramebufferSize / ClientSize rather than read from the platform's reported DPI or
-    ///     content scale, which can disagree with the real framebuffer (on X11 a desktop scale
-    ///     may only change Xft.dpi while the framebuffer stays 1:1 with the window). Correct on
-    ///     every platform by construction, so no per-platform special-casing. False when the
-    ///     client size is not yet known, in which case both scales come back as 1.
-    /// </summary>
-    public bool TryGetScreenScale(out float horizontalScale, out float verticalScale)
-    {
-        var client = ClientSize;
-        var framebuffer = FramebufferSize;
-
-        if (client.X <= 0 || client.Y <= 0)
-        {
-            horizontalScale = 1f;
-            verticalScale = 1f;
-            return false;
-        }
-
-        horizontalScale = (float)framebuffer.X / client.X;
-        verticalScale = (float)framebuffer.Y / client.Y;
-        return true;
-    }
+    /// <inheritdoc cref="GameRuntime.TryGetScreenScale" />
+    public bool TryGetScreenScale(out float horizontalScale, out float verticalScale) =>
+        Runtime.TryGetScreenScale(out horizontalScale, out verticalScale);
 
     protected override void OnLoad()
     {
         base.OnLoad();
         _device.Initialize();
         LogSetup();
-
-        // This thread is the UI thread from here on: awaits come back to it, and reactive state
-        // written from anywhere else is caught in Debug builds.
-        Frame.Install();
-        Rx.OnError = (exception, where) => Logger.Error(exception, "[Reactive] {Where} threw", where);
-        Clipboard.Read = () => ClipboardString ?? "";
-        Clipboard.Write = text => ClipboardString = text;
 
         // Enter/leave only report changes, so the state at startup has to be asked for.
         unsafe
@@ -149,7 +104,7 @@ public class Game : GameWindow
         }
 
         RenderMarker.Debug("Game Window Initialized");
-        AssetProvider.PreloadGraphics();
+        Runtime.Initialize();
 
         AppDomain.CurrentDomain.UnhandledException +=
             (_, args) =>
@@ -157,12 +112,6 @@ public class Game : GameWindow
                 Logger.Fatal(args.ExceptionObject as Exception,
                     "[Unhandled Exception]: ({GameName}, {Id}) ", nameof(Game), _id);
             };
-
-        // Some windowing backends don't reliably deliver a framebuffer-resize event on the
-        // very first frame, so the viewport and the scenes are sized from the current
-        // framebuffer here as well as from the event.
-        var framebufferSize = FramebufferSize;
-        ApplyFramebufferSize(framebufferSize.X, framebufferSize.Y);
 
         RenderMarker.Debug("Finished OnLoad() Procedure");
     }
@@ -207,51 +156,12 @@ public class Game : GameWindow
     protected override void OnFramebufferResize(FramebufferResizeEventArgs e)
     {
         base.OnFramebufferResize(e);
-        ApplyFramebufferSize(e.Width, e.Height);
-    }
-
-    private void ApplyFramebufferSize(int width, int height)
-    {
-        SceneManager.Resize(width, height);
-        Device.Resize(width, height);
-        _frameTarget?.Dispose();
-        _frameTarget = new GPUTexture
-        {
-            Width = Math.Max(1, width), Height = Math.Max(1, height),
-            Usage = TextureUsage.RenderTarget, MipmapMode = MipmapMode.Disabled
-        };
+        Runtime.Resize((e.Width, e.Height));
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
     {
-        var commands = BeginRenderFrame();
-        SceneManager.Render(new RenderArguments { Commands = commands, Delta = args.Time });
-        EndRenderFrame(commands);
-    }
-
-    protected ICommandList BeginRenderFrame()
-    {
-        var commands = Device.BeginFrame();
-        // Offscreen while frames copy what they have drawn, as backdrop blur does, so a backend never
-        // copies from the window. Otherwise straight to the window, which saves a full-screen copy.
-        // ponytail: the first copying frame still reads the window, which OpenGL allows; a backend
-        // that can't must draw offscreen every frame.
-        _offscreen = _device.CopiedFromTargetLastFrame;
-        commands.BeginPass(new PassDescription(_offscreen ? _frameTarget : null, Vector4.Zero));
-        return commands;
-    }
-
-    protected void EndRenderFrame(ICommandList commands)
-    {
-        commands.EndPass();
-        OnAfterRenderPass();
-        if (_offscreen)
-        {
-            commands.BeginPass(new PassDescription());
-            commands.CopyToTarget(_frameTarget!);
-            commands.EndPass();
-        }
-        Device.EndFrame();
+        Runtime.Render(args.Time, _afterRenderPass);
         if (SundexDevelopment.Enabled) LogInput();
     }
 
@@ -264,44 +174,38 @@ public class Game : GameWindow
         MakeCurrent();
 
         CursorState = CursorState.Normal;
-        AssetProvider.Update();
-        ThreadRunner.Update();
-        // Posted work, timers and tickers, then every effect whose state changed, before the
-        // scenes lay out: ten writes in one handler cost one update.
-        Frame.Pump();
-
-        var initArguments = new InitArguments
-        {
-            StartingResolution = ClientSize,
-            Capabilities = Device.Capabilities
-        };
-
-        lock (_enqueuedEvents)
-        {
-            // One per frame, not the whole queue: an enqueued event is typically a scene
-            // being built, so spreading them keeps a single frame from stalling on all of
-            // them at once.
-            if (_enqueuedEvents.TryDequeue(out var action))
-            {
-                action(this);
-                // initialize scenes enqueued using game.Enqueue() before anything else runs.
-                SceneManager.Initialize(initArguments);
-            }
-        }
-
-        SceneManager.Initialize(initArguments);
-
-        if (KeyboardState.IsAnyKeyDown)
-            SceneManager.Keyboard(KeyboardState);
-
-        SceneManager.Mouse(MouseState, KeyboardState);
-        SceneManager.Update(new UpdateArguments
-        {
-            Delta = args.Time
-        });
+        Runtime.Update(args.Time, ReadPointer(), ReadKeyboard());
 
         if (QuitShortcut && KeyboardState.IsKeyDown(Keys.LeftControl) && KeyboardState.IsKeyDown(Keys.Q))
             Close();
+    }
+
+    private PointerInput ReadPointer()
+    {
+        var mouse = MouseState;
+        uint buttons = 0, previous = 0;
+        foreach (var button in PointerButtons)
+        {
+            if (mouse.IsButtonDown(button)) buttons |= PointerInput.Bit(button);
+            if (mouse.WasButtonDown(button)) previous |= PointerInput.Bit(button);
+        }
+
+        return new PointerInput(mouse.Position, mouse.Delta, mouse.ScrollDelta, buttons, previous);
+    }
+
+    private KeyboardInput ReadKeyboard()
+    {
+        var keyboard = KeyboardState;
+        KeySet held = default, pressed = default;
+        if (keyboard.IsAnyKeyDown)
+            foreach (var key in TracedKeys)
+            {
+                if (!keyboard.IsKeyDown(key)) continue;
+                held.Add(key);
+                if (!keyboard.WasKeyDown(key)) pressed.Add(key);
+            }
+
+        return new KeyboardInput(held, pressed);
     }
 
     protected override void OnMouseEnter()
@@ -319,7 +223,7 @@ public class Game : GameWindow
     protected override void OnTextInput(TextInputEventArgs e)
     {
         base.OnTextInput(e);
-        SceneManager.TextInput(e);
+        Runtime.SceneManager.TextInput(e);
         LogTextInput(e);
     }
 
@@ -380,7 +284,7 @@ public class Game : GameWindow
             return;
         }
 
-        SceneManager.KeyDown(e);
+        Runtime.SceneManager.KeyDown(e);
     }
 
     /// <summary>
@@ -405,7 +309,7 @@ public class Game : GameWindow
         if (GLFW.GetPlatform() == Platform.Wayland)
         {
             Logger.Information("[Fullscreen] Refused: GLFW leaves window state to the compositor on Wayland");
-            OnWindowActionUnavailable?.Invoke(WaylandFullscreenTitle, WaylandFullscreenMessage);
+            Runtime.OnWindowActionUnavailable?.Invoke(WaylandFullscreenTitle, WaylandFullscreenMessage);
             return;
         }
 
@@ -426,13 +330,13 @@ public class Game : GameWindow
         base.OnFileDrop(e);
         if (e.FileNames.Length < 1) return;
 
-        SceneManager.FileDropped(e.FileNames);
+        Runtime.SceneManager.FileDropped(e.FileNames);
     }
 
     protected override void OnClosing(CancelEventArgs e)
     {
         base.OnClosing(e);
-        SceneManager.Shutdown();
+        Runtime.SceneManager.Shutdown();
         if (_sourceWatcher == null) return;
         HotReload.Requested = null;
         _sourceWatcher.Dispose();
@@ -443,16 +347,8 @@ public class Game : GameWindow
         if (disposing && _device is { IsDisposed: false })
         {
             MakeCurrent();
-            _device.Dispose();
+            Runtime.Dispose();
         }
         base.Dispose(disposing);
-    }
-
-    public void Enqueue(Action<Game> action)
-    {
-        lock (_enqueuedEvents)
-        {
-            _enqueuedEvents.Enqueue(action);
-        }
     }
 }

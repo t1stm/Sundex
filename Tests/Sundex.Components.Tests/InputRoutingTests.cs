@@ -3,6 +3,7 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using Sundex.Components.Abstractions;
 using Sundex.Components.Panels;
+using Sundex.Engine.Input;
 
 namespace Sundex.Components.Tests;
 
@@ -40,6 +41,29 @@ public class InputRoutingTests
         var ctx = new TestUIContext();
         var root = new Panel(ctx) { Width = 800, Height = 600 };
         return (ctx, root);
+    }
+
+    [Fact]
+    public void PortablePointer_ClicksThatStartAndEndBetweenUpdatesReachTheTarget()
+    {
+        var (ctx, root) = NewTree();
+        var leftClicks = 0;
+        var rightClicks = 0;
+        var target = new Panel(ctx) { Width = 100, Height = 100 };
+        target.OnClick = _ => leftClicks++;
+        target.OnRightClick = _ => rightClicks++;
+        root.Children = [target];
+        root.Layout();
+
+        var left = 1u << (int)MouseButton.Left;
+        var right = 1u << (int)MouseButton.Right;
+        root.Test(new PointerInput((50, 50), Vector2.Zero, Vector2.Zero, 0, 0, left, left), Vector2.One);
+        root.Test(new PointerInput((50, 50), Vector2.Zero, Vector2.Zero, 0, 0, right, right), Vector2.One);
+        root.Test(new PointerInput((50, 50), Vector2.Zero, Vector2.Zero, 0, 0), Vector2.One);
+
+        Assert.Equal(1, leftClicks);
+        Assert.Equal(1, rightClicks);
+        Assert.Null(ctx.CapturedElement);
     }
 
     [Fact]

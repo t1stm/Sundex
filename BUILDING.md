@@ -49,12 +49,12 @@ using var game = new Game(logger, [typeof(Program).Assembly], new GameWindowSett
     Vsync = VSyncMode.On
 }, "MyGame");
 
-game.Enqueue(instance => instance.SceneManager.LoadScene("main", _ => new MainScene(instance)));
-game.Enqueue(instance => instance.SceneManager.TransitionTo("main"));
+game.Runtime.Enqueue(runtime => runtime.SceneManager.LoadScene("main", _ => new MainScene(runtime)));
+game.Runtime.Enqueue(runtime => runtime.SceneManager.TransitionTo("main"));
 game.Run();
 ```
 
-`MainScene` derives from `Sundex.Engine.Scenes.Scene`. Build its contents in `Initialize`, and draw them in `Render`. [Flying Moai's scene](samples/FlyingMoai.Desktop/MoaiScene.cs) is a complete example. Keep textures, fonts and shaders as `EmbeddedResource` items.
+`MainScene` derives from `Sundex.Engine.Scenes.Scene`, which takes the window's `GameRuntime`. Build its contents in `Initialize`, and draw them in `Render`. [Flying Moai's scene](samples/FlyingMoai.Desktop/MoaiScene.cs) is a complete example. Keep textures, fonts and shaders as `EmbeddedResource` items.
 
 ### UI and markup
 

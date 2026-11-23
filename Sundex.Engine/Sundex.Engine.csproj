@@ -35,6 +35,8 @@
     <EmbeddedResource Include="Assets\Fonts\README.md"/>
     <None Update="Assets/Fonts/LICENSE-*.txt" Pack="true" PackagePath="licenses/%(Filename)%(Extension)"/>
     <None Update="buildTransitive/Sundex.Engine.props" Pack="true" PackagePath="buildTransitive/Sundex.Engine.props"/>
+    <None Update="Audio/Native/sundex_audio.c" Pack="true" PackagePath="buildTransitive/browser/sundex_audio.c"/>
+    <None Update="Audio/Native/miniaudio.h" Pack="true" PackagePath="buildTransitive/browser/miniaudio.h"/>
     <EmbeddedResource Include="Assets\Shaders\Text\Batched.frag"/>
     <EmbeddedResource Include="Assets\Shaders\Text\Batched.vert"/>
   </ItemGroup>

@@ -10,6 +10,7 @@ using Sundex.Engine.Renderer.Abstract;
 using Sundex.Style.DSL;
 using Sundex.Style.DSL.Abstract;
 using Sundex.Style.DSL.Abstract.Values;
+using Sundex.Engine.Input;
 
 namespace Sundex.Components.Abstractions;
 
@@ -514,7 +515,7 @@ public abstract partial class UIElement
     /// </summary>
     /// <param name="mouse">The current mouse state.</param>
     /// <param name="scale">The UI scale.</param>
-    public virtual void Test(MouseState mouse, Vector2 scale)
+    public virtual void Test(PointerInput mouse, Vector2 scale)
     {
         if (!Visible) return;
 
@@ -525,7 +526,8 @@ public abstract partial class UIElement
                 mouse.IsButtonPressed(MouseButton.Left),
                 mouse.IsButtonReleased(MouseButton.Left),
                 mouse.ScrollDelta,
-                mouse.IsButtonDown(MouseButton.Right));
+                mouse.IsButtonDown(MouseButton.Right),
+                mouse.IsButtonPressed(MouseButton.Right));
     }
 
     /// <summary>Whether the point (in UI coordinates) lies inside this element's bounds.</summary>

@@ -16,6 +16,6 @@ using var game = new Game(logger, [typeof(MoaiGame).Assembly], new GameWindowSet
 }, "FlyingMoai");
 
 // Scenes touch the graphics device when they build, so they load once the window is up.
-game.Enqueue(instance => instance.SceneManager.LoadScene("moai", _ => new MoaiScene(instance)));
-game.Enqueue(instance => instance.SceneManager.TransitionTo("moai"));
+game.Runtime.Enqueue(runtime => runtime.SceneManager.LoadScene("moai", _ => new MoaiScene(runtime)));
+game.Runtime.Enqueue(runtime => runtime.SceneManager.TransitionTo("moai"));
 game.Run();

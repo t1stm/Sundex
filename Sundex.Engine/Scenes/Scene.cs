@@ -1,19 +1,19 @@
 using OpenTK.Windowing.Common;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using Serilog;
 using Sundex.Engine.AssetManagement;
+using Sundex.Engine.Input;
 using Sundex.Engine.Scenes.Arguments;
 using Sundex.Engine.Threading;
 
 namespace Sundex.Engine.Scenes;
 
-public abstract class Scene(Game game)
+public abstract class Scene(GameRuntime runtime)
 {
-    public Game Game { get; } = game;
-    public AssetProvider AssetProvider => Game.AssetProvider;
-    public SceneManager SceneManager => Game.SceneManager;
-    public ThreadRunner ThreadRunner => Game.ThreadRunner;
-    public ILogger Logger => Game.Logger;
+    public GameRuntime Runtime { get; } = runtime;
+    public AssetProvider AssetProvider => Runtime.AssetProvider;
+    public SceneManager SceneManager => Runtime.SceneManager;
+    public ThreadRunner ThreadRunner => Runtime.ThreadRunner;
+    public ILogger Logger => Runtime.Logger;
 
 
     /// <summary>
@@ -86,15 +86,15 @@ public abstract class Scene(Game game)
     /// <summary>
     ///     Event triggered when a keyboard button is pressed.
     /// </summary>
-    /// <param name="state">A copy of the KeyboardState.</param>
-    public abstract void Keyboard(KeyboardState state);
+    /// <param name="state">The keys this update.</param>
+    public abstract void Keyboard(KeyboardInput state);
 
     /// <summary>
     ///     Event triggered when a pointing device is interacted with.
     /// </summary>
-    /// <param name="mouseState">A copy of the MouseState.</param>
-    /// <param name="keyboardState">A copy of the KeyboardState.</param>
-    public abstract void Mouse(MouseState mouseState, KeyboardState keyboardState);
+    /// <param name="mouseState">The pointer this update.</param>
+    /// <param name="keyboardState">The keys this update.</param>
+    public abstract void Mouse(PointerInput mouseState, KeyboardInput keyboardState);
 
     /// <summary>
     ///     Event triggered when the window receives a unicode text input.

@@ -53,6 +53,41 @@ public class FileSelectionTests
     }
 
     [Fact]
+    public void WorkspacePickerUsesVirtualRootAndRejectsPathsOutsideIt()
+    {
+        var root = Folder();
+        try
+        {
+            var context = new TestUIContext();
+            var selection = new FileSelection(context, null, ".tdwproj", "Open", null, "Open project", root);
+            selection.HandleKeyDown(Key(Keys.Backspace));
+            Assert.Equal(root, selection.CurrentPath);
+
+            selection.HandleKeyDown(Key(Keys.L, KeyModifiers.Control));
+            var field = Descendants(selection).OfType<TextInput>().Single();
+            Assert.Equal("/", field.Value);
+            field.Value = "../";
+            field.OnCommit!(field);
+            context.Blur();
+            Assert.Equal(root, selection.CurrentPath);
+            Assert.Contains("file-path-input-invalid", field.Classes);
+
+            field.Value = "/song.tdwproj";
+            field.OnCommit!(field);
+            Assert.Equal(Path.Combine(root, "song.tdwproj"), selection.SelectedPath);
+            selection.SelectFile(Path.Combine(root, "..", "outside.tdwproj"));
+            Assert.Equal(Path.Combine(root, "song.tdwproj"), selection.SelectedPath);
+
+            var save = new FileSelection(context, "../outside", ".tdwproj", "Save", null, "Save project", root);
+            Assert.Null(save.SelectedPath);
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
+    [Fact]
     public void OpenMode_SelectFile_ExposesThePath_AndNotifies()
     {
         var context = new TestUIContext();

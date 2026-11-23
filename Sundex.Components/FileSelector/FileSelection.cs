@@ -48,6 +48,7 @@ public sealed class FileSelection : FlexPanel
     private readonly Label _overwriteLabel;
     private readonly TextInput _pathInput;
     private readonly List<FileRow> _rows = [];
+    private readonly string? _workspaceRoot;
     private bool _useHostStyle;
 
     /// <summary>The keyboard's row in <see cref="_rows" />; -1 for none.</summary>
@@ -74,16 +75,21 @@ public sealed class FileSelection : FlexPanel
     ///     home directory instead.
     /// </param>
     /// <param name="title">The dialog's heading, e.g. "Open project".</param>
+    /// <param name="workspaceRoot">
+    ///     A folder the picker can't leave, shown as <c>/</c>; null browses the whole disk.
+    /// </param>
     public FileSelection(UIContext context, string? saveFileName = null, string? extensionFilter = null,
-        string confirmLabel = "Select", string? directory = null, string title = "Open file") :
+        string confirmLabel = "Select", string? directory = null, string title = "Open file",
+        string? workspaceRoot = null) :
         base(context)
     {
         Direction = LayoutDirection.Vertical;
         ExtensionFilter = extensionFilter;
         _confirmLabel = confirmLabel;
-        CurrentPath = Directory.Exists(directory)
+        _workspaceRoot = workspaceRoot == null ? null : Path.TrimEndingDirectorySeparator(Path.GetFullPath(workspaceRoot));
+        CurrentPath = Directory.Exists(directory) && WithinWorkspace(Path.GetFullPath(directory))
             ? Path.GetFullPath(directory)
-            : Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            : _workspaceRoot ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
         var header = new FlexPanel(context) { Classes = ["dialog-header"] };
         header.Children = [new Label(context, title) { Classes = ["dialog-title"] }];
@@ -210,6 +216,8 @@ public sealed class FileSelection : FlexPanel
 
             var name = _nameInput.Value.Trim();
             if (name.Length == 0) return null;
+            if (_workspaceRoot != null && (name is "." or ".." || name.Contains('/') || name.Contains('\\') ||
+                                           Path.IsPathRooted(name))) return null;
             if (ExtensionFilter != null && !name.EndsWith(ExtensionFilter, StringComparison.OrdinalIgnoreCase))
                 name += ExtensionFilter;
             return Path.Combine(CurrentPath, name);
@@ -236,9 +244,28 @@ public sealed class FileSelection : FlexPanel
         OnSelect?.Invoke(this);
     }
 
+    /// <summary>
+    ///     Wires the picker to the modal it sits in: cancelling removes the modal, and a pick
+    ///     removes it and hands the path to <paramref name="onPicked" />.
+    /// </summary>
+    public void CloseWith(ModalLayer modal, Action<string> onPicked)
+    {
+        OnCancel = _ => Remove();
+        OnSelect = _ =>
+        {
+            if (SelectedPath is not { } path) return;
+            Remove();
+            onPicked(path);
+        };
+        return;
+
+        void Remove() => (modal.Parent as Panel)?.RemoveChild(modal);
+    }
+
     /// <summary>Marks a file as chosen - what clicking a row does.</summary>
     public void SelectFile(string path)
     {
+        if (!WithinWorkspace(path)) return;
         SelectedFile = path;
         _nameInput?.Value = ExtensionFilter != null && path.EndsWith(ExtensionFilter, StringComparison.OrdinalIgnoreCase)
             ? Path.GetFileNameWithoutExtension(path)
@@ -328,7 +355,7 @@ public sealed class FileSelection : FlexPanel
     private void NavigateUp()
     {
         var directory = new DirectoryInfo(CurrentPath);
-        if (directory.Parent == null) return;
+        if (directory.Parent == null || !WithinWorkspace(directory.Parent.FullName)) return;
 
         // Coming back up, the folder just left is where the keyboard picks up.
         var left = CurrentPath;
@@ -342,7 +369,7 @@ public sealed class FileSelection : FlexPanel
     private void EditPath()
     {
         if (_location.Children.Contains(_pathInput)) return;
-        _pathInput.Value = CurrentPath;
+        _pathInput.Value = DisplayPath();
         _location.RemoveChild(_crumbs);
         _location.AddChild(_pathInput);
         Context.Focus(_pathInput);
@@ -357,24 +384,26 @@ public sealed class FileSelection : FlexPanel
     private void CommitPath()
     {
         var text = _pathInput.Value.Trim();
-        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        if (text == "~" || text.StartsWith("~/", StringComparison.Ordinal)) text = home + text[1..];
-
         string path;
         try
         {
-            path = Path.GetFullPath(text, CurrentPath);
+            if (text == "~" || text.StartsWith("~/", StringComparison.Ordinal))
+                text = (_workspaceRoot == null ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) : "") + text[1..];
+
+            path = _workspaceRoot != null && (text.Length == 0 || text.StartsWith('/'))
+                ? Path.GetFullPath(text.TrimStart('/') is { Length: > 0 } relative ? relative : ".", _workspaceRoot)
+                : Path.GetFullPath(text, CurrentPath);
         }
         catch (Exception)
         {
             path = "";
         }
 
-        if (Directory.Exists(path))
+        if (WithinWorkspace(path) && Directory.Exists(path))
         {
             NavigateTo(path);
         }
-        else if (File.Exists(path) && Path.GetDirectoryName(path) is { } folder)
+        else if (WithinWorkspace(path) && File.Exists(path) && Path.GetDirectoryName(path) is { } folder)
         {
             NavigateTo(folder);
             if (ExtensionFilter != null && !path.EndsWith(ExtensionFilter, StringComparison.OrdinalIgnoreCase)) return;
@@ -445,7 +474,7 @@ public sealed class FileSelection : FlexPanel
 
     private void NavigateTo(string path)
     {
-        if (!Directory.Exists(path)) return;
+        if (!WithinWorkspace(path) || !Directory.Exists(path)) return;
         CurrentPath = path;
         SelectedFile = null; // a pick from another directory must not survive navigation
         RefreshFiles();
@@ -471,7 +500,7 @@ public sealed class FileSelection : FlexPanel
 
     private void RefreshFiles()
     {
-        _crumbs.Show(CrumbsFor(CurrentPath));
+        _crumbs.Show(_workspaceRoot == null ? CrumbsFor(CurrentPath) : WorkspaceCrumbs());
         var rows = new List<UIElement>();
 
         try
@@ -531,6 +560,34 @@ public sealed class FileSelection : FlexPanel
         _rows.AddRange(rows.OfType<FileRow>());
         _cursor = -1;
         RefreshOverwrite();
+    }
+
+    private bool WithinWorkspace(string path)
+    {
+        if (_workspaceRoot == null) return true;
+        if (!Path.IsPathFullyQualified(path)) return false;
+        var relative = Path.GetRelativePath(_workspaceRoot, path);
+        return !Path.IsPathRooted(relative) && relative != ".." &&
+               !relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal);
+    }
+
+    private string DisplayPath()
+    {
+        if (_workspaceRoot == null) return CurrentPath;
+        var relative = Path.GetRelativePath(_workspaceRoot, CurrentPath);
+        return relative == "." ? "/" : "/" + relative.Replace(Path.DirectorySeparatorChar, '/');
+    }
+
+    private List<(string Label, string Path, bool Home)> WorkspaceCrumbs()
+    {
+        var current = _workspaceRoot!;
+        var crumbs = new List<(string, string, bool)> { ("/", current, false) };
+        foreach (var segment in DisplayPath().Split('/', StringSplitOptions.RemoveEmptyEntries))
+        {
+            current = Path.Combine(current, segment);
+            crumbs.Add((segment, current, false));
+        }
+        return crumbs;
     }
 
     /// <summary>

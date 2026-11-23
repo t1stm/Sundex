@@ -5,6 +5,7 @@ using Sundex.Components.Abstractions;
 using Sundex.Components.Abstractions.Values;
 using Sundex.Components.Attributes;
 using Sundex.Components.Panels;
+using Sundex.Engine.Input;
 
 namespace Sundex.Components.Labels;
 
@@ -62,7 +63,7 @@ public sealed class DropDownLabel : Panel
         return Label.Measure(parentWidth, parentHeight);
     }
 
-    public override void Test(MouseState mouse, Vector2 scale)
+    public override void Test(PointerInput mouse, Vector2 scale)
     {
         var hidePanel = mouse.IsButtonPressed(MouseButton.Left);
         Label.Test(mouse, scale);

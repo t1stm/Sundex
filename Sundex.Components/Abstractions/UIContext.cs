@@ -368,9 +368,13 @@ public class UIContext : IGamePreloadable
     ///     wheel routing, and click-to-focus. Called by <see cref="UIElement.Test" /> on root
     ///     elements; call directly with primitives in headless tests.
     /// </summary>
+    /// <param name="wasRightPressed">
+    ///     A right press since the last update, for one that started and ended between updates;
+    ///     a press still held is seen from <paramref name="isRightDown" /> alone.
+    /// </param>
     public void UpdatePointer(UIElement root, float x, float y,
         bool isDown, bool wasPressed, bool wasReleased, Vector2 scrollDelta,
-        bool isRightDown = false)
+        bool isRightDown = false, bool wasRightPressed = false)
     {
         // Once a frame, before input: a resize that crossed a breakpoint re-styles here.
         RefreshMedia();
@@ -378,7 +382,7 @@ public class UIContext : IGamePreloadable
         PointerX = x;
         PointerY = y;
         PointerDown = isDown;
-        var rightPressed = isRightDown && !_rightDown;
+        var rightPressed = wasRightPressed || (isRightDown && !_rightDown);
         if (rightPressed) RightPressId++;
         _rightDown = isRightDown;
 

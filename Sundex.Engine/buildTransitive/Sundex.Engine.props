@@ -1,4 +1,8 @@
 <Project>
+  <PropertyGroup>
+    <SundexBrowserAudioSource>$(MSBuildThisFileDirectory)browser/sundex_audio.c</SundexBrowserAudioSource>
+    <SundexBrowserAudioSource Condition="!Exists('$(SundexBrowserAudioSource)')">$(MSBuildThisFileDirectory)../Audio/Native/sundex_audio.c</SundexBrowserAudioSource>
+  </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute" Condition="'$(RootNamespace)' != ''">
       <_Parameter1>SundexAssetRoot</_Parameter1>
