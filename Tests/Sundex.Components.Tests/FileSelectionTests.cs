@@ -159,6 +159,47 @@ public class FileSelectionTests
     }
 
     [Fact]
+    public void OpenMode_ListsAndPicksFilesMatchingAnyExtension()
+    {
+        var folder = Folder();
+        try
+        {
+            string[] files = ["song.tdw", "other.MOAI", "cover.🗿"];
+            foreach (var file in files) File.WriteAllText(Path.Combine(folder, file), "");
+
+            var context = new TestUIContext();
+            var selection = FileSelection.Open(context, [".tdw", ".moai", ".🗿"], workspaceRoot: folder);
+            var visibleFiles = Descendants(selection).OfType<Label>()
+                .Where(label => label.Classes.Contains("file-row-name"))
+                .Select(label => label.Value.ToString());
+
+            Assert.Equal(["a", "b", "cover.🗿", "other.MOAI", "song.tdw"], visibleFiles);
+
+            foreach (var file in files)
+            {
+                TypePath(file);
+                Assert.Equal(Path.Combine(folder, file), selection.SelectedPath);
+            }
+
+            TypePath("song.tdwproj");
+            Assert.Null(selection.SelectedPath);
+
+            void TypePath(string file)
+            {
+                selection.HandleKeyDown(Key(Keys.L, KeyModifiers.Control));
+                var field = Descendants(selection).OfType<TextInput>().Single();
+                field.Value = file;
+                field.OnCommit!(field);
+                context.Blur();
+            }
+        }
+        finally
+        {
+            Directory.Delete(folder, true);
+        }
+    }
+
+    [Fact]
     public void DoublePressingAFile_Confirms()
     {
         var folder = Directory.CreateTempSubdirectory().FullName;

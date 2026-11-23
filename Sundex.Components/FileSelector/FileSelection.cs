@@ -40,6 +40,8 @@ public sealed class FileSelection : FlexPanel
 {
     private readonly Breadcrumbs _crumbs;
     private readonly string _confirmLabel;
+    private readonly string[] _extensions;
+    private readonly string? _extensionDescription;
     private readonly FlexPanel _footer;
     private readonly ScrollView _list;
     private readonly FlexPanel _location;
@@ -81,10 +83,23 @@ public sealed class FileSelection : FlexPanel
     public FileSelection(UIContext context, string? saveFileName = null, string? extensionFilter = null,
         string confirmLabel = "Select", string? directory = null, string title = "Open file",
         string? workspaceRoot = null) :
-        base(context)
+        this(context, saveFileName, extensionFilter, confirmLabel, directory, title, workspaceRoot,
+            extensionFilter == null ? [] : [extensionFilter])
+    {
+    }
+
+    /// <summary>Creates an open dialog that lists files matching any of the given extensions.</summary>
+    public static FileSelection Open(UIContext context, IReadOnlyList<string> extensions, string confirmLabel = "Open",
+        string? directory = null, string title = "Open file", string? workspaceRoot = null) =>
+        new(context, null, null, confirmLabel, directory, title, workspaceRoot, [.. extensions]);
+
+    private FileSelection(UIContext context, string? saveFileName, string? extensionFilter, string confirmLabel,
+        string? directory, string title, string? workspaceRoot, string[] extensions) : base(context)
     {
         Direction = LayoutDirection.Vertical;
         ExtensionFilter = extensionFilter;
+        _extensions = extensions;
+        _extensionDescription = extensions.Length == 0 ? null : string.Join(", ", extensions);
         _confirmLabel = confirmLabel;
         _workspaceRoot = workspaceRoot == null ? null : Path.TrimEndingDirectorySeparator(Path.GetFullPath(workspaceRoot));
         CurrentPath = Directory.Exists(directory) && WithinWorkspace(Path.GetFullPath(directory))
@@ -93,11 +108,11 @@ public sealed class FileSelection : FlexPanel
 
         var header = new FlexPanel(context) { Classes = ["dialog-header"] };
         header.Children = [new Label(context, title) { Classes = ["dialog-title"] }];
-        if (extensionFilter != null)
+        if (_extensionDescription != null)
             header.Children.Add(new FlexPanel(context)
             {
                 Classes = ["info-chip"],
-                Children = [new Label(context, extensionFilter) { Classes = ["info-chip-label"] }]
+                Children = [new Label(context, _extensionDescription) { Classes = ["info-chip-label"] }]
             });
         header.Children.AddRange([Spacer(context), IconButton(context, Icons.X, () => OnCancel?.Invoke(this))]);
 
@@ -406,7 +421,7 @@ public sealed class FileSelection : FlexPanel
         else if (WithinWorkspace(path) && File.Exists(path) && Path.GetDirectoryName(path) is { } folder)
         {
             NavigateTo(folder);
-            if (ExtensionFilter != null && !path.EndsWith(ExtensionFilter, StringComparison.OrdinalIgnoreCase)) return;
+            if (!MatchesExtension(path)) return;
             SelectFile(path);
             _reveal = _rows.ElementAtOrDefault(_cursor);
         }
@@ -510,8 +525,7 @@ public sealed class FileSelection : FlexPanel
                 .OrderBy(info => info.Name, StringComparer.OrdinalIgnoreCase)
                 .ToArray();
             var files = new DirectoryInfo(CurrentPath).GetFiles()
-                .Where(info => ExtensionFilter == null ||
-                               info.Name.EndsWith(ExtensionFilter, StringComparison.OrdinalIgnoreCase))
+                .Where(info => MatchesExtension(info.Name))
                 .OrderBy(info => info.Name, StringComparer.OrdinalIgnoreCase)
                 .ToArray();
 
@@ -536,11 +550,11 @@ public sealed class FileSelection : FlexPanel
                         OnClick = _ => SelectFile(info.FullName),
                         OnDoublePress = Confirm
                     }));
-                if (files.Length == 0 && ExtensionFilter != null)
+                if (files.Length == 0 && _extensionDescription != null)
                     rows.Add(new FlexPanel(Context)
                     {
                         Classes = ["file-list-note"],
-                        Children = [new Label(Context, $"No {ExtensionFilter} files here") { Classes = ["file-list-note-label"] }]
+                        Children = [new Label(Context, $"No {_extensionDescription} files here") { Classes = ["file-list-note-label"] }]
                     });
             }
         }
@@ -561,6 +575,9 @@ public sealed class FileSelection : FlexPanel
         _cursor = -1;
         RefreshOverwrite();
     }
+
+    private bool MatchesExtension(string path) =>
+        _extensions.Length == 0 || _extensions.Any(extension => path.EndsWith(extension, StringComparison.OrdinalIgnoreCase));
 
     private bool WithinWorkspace(string path)
     {
