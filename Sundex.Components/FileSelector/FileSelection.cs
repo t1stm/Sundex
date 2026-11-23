@@ -101,7 +101,9 @@ public sealed class FileSelection : FlexPanel
         _extensions = extensions;
         _extensionDescription = extensions.Length == 0 ? null : string.Join(", ", extensions);
         _confirmLabel = confirmLabel;
-        _workspaceRoot = workspaceRoot == null ? null : Path.TrimEndingDirectorySeparator(Path.GetFullPath(workspaceRoot));
+        _workspaceRoot = workspaceRoot == null
+            ? null
+            : Path.TrimEndingDirectorySeparator(Path.GetFullPath(workspaceRoot));
         CurrentPath = Directory.Exists(directory) && WithinWorkspace(Path.GetFullPath(directory))
             ? Path.GetFullPath(directory)
             : _workspaceRoot ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
@@ -151,7 +153,11 @@ public sealed class FileSelection : FlexPanel
         _overwrite = new FlexPanel(context)
         {
             Classes = ["file-overwrite"],
-            Children = [new Label(context, Icons.TriangleAlert, Icons.Font) { Classes = ["file-overwrite-icon"] }, _overwriteLabel]
+            Children =
+            [
+                new Label(context, Icons.TriangleAlert, Icons.Font) { Classes = ["file-overwrite-icon"] },
+                _overwriteLabel
+            ]
         };
 
         CancelButton = new Button(context, "Cancel") { OnClick = _ => OnCancel?.Invoke(this) };
@@ -206,7 +212,8 @@ public sealed class FileSelection : FlexPanel
 
     private static readonly Lazy<StyleSheet> OwnStyle = new(() =>
     {
-        using var stream = typeof(FileSelection).Assembly.GetManifestResourceStream("Sundex.Components.FileSelection.snx.ss")!;
+        using var stream =
+            typeof(FileSelection).Assembly.GetManifestResourceStream("Sundex.Components.FileSelection.snx.ss")!;
         using var reader = new StreamReader(stream);
         return new StyleSheet(StyleParser.Parse(reader.ReadToEnd()));
     });
@@ -282,7 +289,8 @@ public sealed class FileSelection : FlexPanel
     {
         if (!WithinWorkspace(path)) return;
         SelectedFile = path;
-        _nameInput?.Value = ExtensionFilter != null && path.EndsWith(ExtensionFilter, StringComparison.OrdinalIgnoreCase)
+        _nameInput?.Value = ExtensionFilter != null &&
+                            path.EndsWith(ExtensionFilter, StringComparison.OrdinalIgnoreCase)
             ? Path.GetFileNameWithoutExtension(path)
             : Path.GetFileName(path);
 
@@ -403,7 +411,9 @@ public sealed class FileSelection : FlexPanel
         try
         {
             if (text == "~" || text.StartsWith("~/", StringComparison.Ordinal))
-                text = (_workspaceRoot == null ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) : "") + text[1..];
+                text =
+                    (_workspaceRoot == null ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) : "") +
+                    text[1..];
 
             path = _workspaceRoot != null && (text.Length == 0 || text.StartsWith('/'))
                 ? Path.GetFullPath(text.TrimStart('/') is { Length: > 0 } relative ? relative : ".", _workspaceRoot)
@@ -543,7 +553,8 @@ public sealed class FileSelection : FlexPanel
                 // and the list's spacing put the first row 4 below its top.
                 rows.Add(new Panel(Context) { Height = 2 });
                 rows.AddRange(directories.Select(info =>
-                    new FileRow(Context, info.FullName, info.Name, null, true) { OnClick = _ => NavigateTo(info.FullName) }));
+                    new FileRow(Context, info.FullName, info.Name, null, true)
+                        { OnClick = _ => NavigateTo(info.FullName) }));
                 rows.AddRange(files.Select(info =>
                     new FileRow(Context, info.FullName, info.Name, info.LastWriteTime, false)
                     {
@@ -554,7 +565,11 @@ public sealed class FileSelection : FlexPanel
                     rows.Add(new FlexPanel(Context)
                     {
                         Classes = ["file-list-note"],
-                        Children = [new Label(Context, $"No {_extensionDescription} files here") { Classes = ["file-list-note-label"] }]
+                        Children =
+                        [
+                            new Label(Context, $"No {_extensionDescription} files here")
+                                { Classes = ["file-list-note-label"] }
+                        ]
                     });
             }
         }
@@ -563,7 +578,11 @@ public sealed class FileSelection : FlexPanel
             rows.Add(new FlexPanel(Context)
             {
                 Classes = ["file-list-note"],
-                Children = [new Label(Context, $"Can't open this folder: {exception.Message}") { Classes = ["file-list-note-label"] }]
+                Children =
+                [
+                    new Label(Context, $"Can't open this folder: {exception.Message}")
+                        { Classes = ["file-list-note-label"] }
+                ]
             });
         }
 
@@ -577,7 +596,8 @@ public sealed class FileSelection : FlexPanel
     }
 
     private bool MatchesExtension(string path) =>
-        _extensions.Length == 0 || _extensions.Any(extension => path.EndsWith(extension, StringComparison.OrdinalIgnoreCase));
+        _extensions.Length == 0 ||
+        _extensions.Any(extension => path.EndsWith(extension, StringComparison.OrdinalIgnoreCase));
 
     private bool WithinWorkspace(string path)
     {
@@ -604,6 +624,7 @@ public sealed class FileSelection : FlexPanel
             current = Path.Combine(current, segment);
             crumbs.Add((segment, current, false));
         }
+
         return crumbs;
     }
 
@@ -616,7 +637,8 @@ public sealed class FileSelection : FlexPanel
         var crumbs = new List<(string, string, bool)>();
         string rest;
         string current;
-        if (home.Length > 0 && (path == home || path.StartsWith(home + Path.DirectorySeparatorChar, StringComparison.Ordinal)))
+        if (home.Length > 0 &&
+            (path == home || path.StartsWith(home + Path.DirectorySeparatorChar, StringComparison.Ordinal)))
         {
             crumbs.Add(("Home", home, true));
             current = home;
@@ -647,7 +669,8 @@ public sealed class FileSelection : FlexPanel
 
     private static Button IconButton(UIContext context, string icon, Action onClick)
     {
-        var button = new Button(context, icon, font: Icons.Font) { Classes = ["icon-button"], OnClick = _ => onClick() };
+        var button = new Button(context, icon, font: Icons.Font)
+            { Classes = ["icon-button"], OnClick = _ => onClick() };
         button.Label.Classes = ["icon-button-icon"];
         return button;
     }
@@ -755,7 +778,8 @@ public sealed class FileSelection : FlexPanel
 
         private FlexPanel Crumb(string text, string path, bool home, bool current)
         {
-            var crumb = new FlexPanel(Context) { Classes = current ? ["file-crumb"] : ["file-crumb", "file-crumb-link"] };
+            var crumb = new FlexPanel(Context)
+                { Classes = current ? ["file-crumb"] : ["file-crumb", "file-crumb-link"] };
             if (home) crumb.Children.Add(new Label(Context, Icons.House, Icons.Font) { Classes = ["file-crumb-icon"] });
             crumb.Children.Add(new Label(Context, text)
                 { Classes = current ? ["file-crumb-label", "file-crumb-label-current"] : ["file-crumb-label"] });
