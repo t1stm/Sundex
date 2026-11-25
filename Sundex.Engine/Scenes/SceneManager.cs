@@ -150,6 +150,16 @@ public class SceneManager(ILogger logger)
                 scene.Shutdown();
             Scenes.Clear();
         }
+
+        // The window loop can still update and render once after closing starts, so the shut-down
+        // scenes stop being active rather than drawing their disposed resources.
+        lock (ActiveScenes)
+        {
+            ActiveScenes = [];
+            _nextScenes = null;
+        }
+
+        logger.Information("[Scene Manager] Scenes shut down; no scenes left to run, quitting");
     }
 
     public void FileDropped(string[] locations)
